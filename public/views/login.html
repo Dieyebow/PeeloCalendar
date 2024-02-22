@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign In</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #6cffdb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .card {
+      width: 400px;
+      border: none; /* Remove the default border from the card */
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Add a subtle box shadow effect */
+    }
+
+    .card-body {
+      padding: 30px; /* Add padding to the card body */
+    }
+
+    .card-title {
+      color: #333; /* Set the color of the card title */
+      font-size: 24px; /* Increase the font size of the card title */
+      margin-bottom: 30px; /* Add bottom margin to the card title */
+    }
+
+    .form-group label {
+      color: #555; /* Set the color of form labels */
+      font-weight: 500; /* Increase the font weight of form labels */
+    }
+
+    .form-control {
+      border-color: #ccc; /* Set the border color of form controls */
+      border-radius: 4px; /* Add a slight border radius to form controls */
+    }
+
+    .form-check-label {
+      color: #555; /* Set the color of form check labels */
+    }
+
+    .btn-block {
+      margin-top: 20px; /* Add top margin to the "Sign In" button */
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title text-center">Sign In</h4>
+      <hr>
+      <a href="<%=authUrl%>"> 
+        <button type="button" class="btn btn-danger btn-block">Sign In with Google</button>
+      </a>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
