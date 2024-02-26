@@ -442,75 +442,70 @@ app.post('/autobot/signup/user', (req, res) => {
 });
 /**/
 
-/*
-app.post('/autobot/signup/user', async (req, res) => {
-  console.log('/autobot/signup/user async')
-  try {
-    // Extract only necessary data directly
-    const extractedData = _.reduce(req.body.datas, (result, { idvariable, value }) => {
-      if (idvariable && value !== null) {
-        console.log('the value zerr ==>>', value.value);
-        //result[idvariable] = value.value.text.body;
-        if (_.isObject(value.value)) {
-          if (_.has(value.value, 'variable_declared')) {
-            result[idvariable] = value.value.variable_declared.data;
-          } else {
-            result[idvariable] = value.value.text.body;
-          }
+app.post('/autoecole/checktypeuser', async(req, res) => {
+ 
+  console.log('/autoecole/checktypeuser',req.body.datas);
+
+  const extractedData = _.reduce(req.body.datas, (result, { idvariable, value }) => {
+    if (idvariable && value !== null) {
+      console.log('the value zerr ==>>', value.value);
+      //result[idvariable] = value.value.text.body;
+      if (_.isObject(value.value)) {
+        if (_.has(value.value, 'variable_declared')) {
+          result[idvariable] = value.value.variable_declared.data;
         } else {
-          result[idvariable] = value;
+          result[idvariable] = value.value.text.body;
         }
+      } else {
+        result[idvariable] = value;
       }
-      return result;
-    }, {});
-
-    console.log('extractedData ==>',extractedData);
-
-    const { fullname_ae, tel_ae, bot_number } = extractedData
-    console.log(' fullname_ae, tel_ae, bot_number ', fullname_ae, tel_ae, bot_number )
-    const telit = bot_number.slice(3).join('');
-
-    const studentFound = await Mongo.findAutoEcoleStudent({ tel: tel_ae });
-    if (studentFound.length) {
-      res.json({
-        id_element: "notification_eleve",
-        id_previous: null,
-        type: "text",
-        message: "Un Elève est déjà enregistré avec ce numéro",
-        preview_url: true,
-      });
-      res.end();
-      return;
     }
+    return result;
+  }, {});
 
-    const autoecole = await Mongo.findAutoEcole({ phoneNumber: telit });
-    if (autoecole.length) {
-      const student = await Mongo.createAutoEcoleStudent({
-        fullname: fullname_ae,
-        tel: tel_ae,
-        name_autoecole: autoecole[0]['nomAutoecole'],
-        id_autoecole: autoecole[0]['_id'],
-        tel_autoecole: telit,
+  console.log('extractedData ==>',extractedData);
+
+  Mongo.connect()
+
+    .then(async(success) => {
+      
+     //console.log('req.user', req.user)
+       const monitor = await Mongo.listAutoEcole({
+        "phoneNumber": _.slice(extractedData.reply_phone, 3).join('') 
       });
-      res.json({
-        id_element: "notification_eleve",
-        id_previous: null,
-        type: "text",
-        message: "Elève enregistré avec succès",
-        preview_url: true,
-      });
-      res.end();
-    } else {
-      console.log("Auto-école non trouvée");
-    }
-  } catch (error) {
-    console.error("Erreur:", error);
-    res.status(500).send("Une erreur est survenue");
-  } finally {
-    await Mongo.disconnect(); // Ensure disconnection
-  }
+
+        console.log('Monitor ===>', monitor);
+        if(monitor.length){
+
+          Mongo.disconnect();
+          return res.status(200).send(
+            {
+              "type": "redirection",
+              "id_element": "redirection_from_redirection",
+              "id_previous": null,
+              "redirection_block": "welcome_moniteur"
+            }
+          );
+          res.end();
+          return ;
+        }
+
+        const eleves = await Mongo.findAutoEcoleStudent({
+          "tel": _.slice(extractedData.reply_phone, 3).join('') 
+        })
+
+
+
+        
+
+    })
+
+    .catch((error) => {
+      console.log('error ==>', error)
+
+    })
+
+
 });
-*/
-
 
 app.listen(7568);
