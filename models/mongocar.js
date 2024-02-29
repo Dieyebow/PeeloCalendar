@@ -84,6 +84,10 @@ async function findBy(database, table, client, id1) {
 }
 
 async function createElement(database, table, client, newListing) {
+    
+    newListing.created_at  =  new Date(),
+    newListing.update_date =  new Date()
+
     const result = await client
         .db(database)
         .collection(table)
@@ -146,6 +150,11 @@ class Mongobot {
     countAutoEcole(data=null){
         console.log('countAllAutoEcole')
         return countElements("peelo", "autoecoles", this.client,data)
+    }
+
+    countElevesAutoEcole(data=null){
+        console.log('countAllAutoEcole')
+        return countElements("peelo", "autoecoles_current_user", this.client,data)
     }
 
     listAutoEcole(params){
