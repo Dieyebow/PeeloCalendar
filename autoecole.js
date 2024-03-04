@@ -81,7 +81,8 @@ const alreadyLogin = (req, res, next) => {
 
 
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
+
+   const authHeader = req.headers['authorization'];
 
   if (authHeader == null) return res.sendStatus(401);
 
@@ -332,7 +333,20 @@ app.get('/get/numbers/:type', authenticateToken, (req, res) => {
             return res.status(500).json({ error: 'Internal server error' });
           });
 
-      } else {
+      } else if (type === 'quiz') {
+
+        Mongo.countQuizz()
+          .then((quizz) => {
+            console.log('Driving schools count: ' + quizz);
+            Mongo.disconnect();
+            return res.status(200).json({ count: quizz });
+          })
+          .catch((errorcount) => {
+            console.error('Error:', errorcount);
+            return res.status(500).json({ error: 'Internal server error' });
+          });
+
+      }else {
         return res.status(400).json({ error: 'Invalid count type' });
       }
 
@@ -621,5 +635,12 @@ app.post('/autoecole/checktypeuser', async (req, res) => {
 
 
 });
+
+
+
+require('./routes/autoecole/post')(_, app, axios, Mongo, require("mongodb").ObjectID,authenticateToken);
+
+
+
 
 app.listen(7568);
