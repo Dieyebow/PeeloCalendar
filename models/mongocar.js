@@ -143,13 +143,16 @@ class Mongobot {
     }
 
     countAllAutoEcole(){
-        console.log('countAllAutoEcole')
         return countElements("peelo", "autoecoles", this.client)
     }
 
     countAutoEcole(data=null){
-        console.log('countAllAutoEcole')
         return countElements("peelo", "autoecoles", this.client,data)
+    }
+
+    countQuizz(data=null){
+        return countElements("peelo", "autoecoles_quizz", this.client,data)
+
     }
 
     countElevesAutoEcole(data=null){
@@ -170,7 +173,10 @@ class Mongobot {
 
     createAutoEcoleStudent(userData){
         return createElement("peelo", "autoecoles_current_user", this.client, userData);
+    }
 
+    createQuizz(userData){
+        return createElement("peelo","autoecoles_quizz", this.client, userData)
     }
 
 }
