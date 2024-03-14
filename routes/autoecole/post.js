@@ -2,7 +2,7 @@ module.exports = (_, app, axios, Mongo, ObjectID, authenticateToken) => {
 
     app.post('/add/question/quizz/:idquizz', authenticateToken, async (req, res) => {
 
-        console.log('nameQuizz ==>', req.body);
+        console.log('req.body ==>', req.body);
 
     })
    
