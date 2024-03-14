@@ -5,7 +5,7 @@ module.exports = (_, app, axios, Mongo, ObjectID, authenticateToken) => {
     app.post('/add/question/quizz/:idquizz', authenticateToken, async (req, res) => {
 
         console.log('nameQuizz ==>', req.body);
-        const { nameQuizz, question } = req.body;
+       // const { nameQuizz, question } = req.body;
          //ceci est un tes pour voir si totu est bo
         /*
         try {
@@ -29,6 +29,7 @@ module.exports = (_, app, axios, Mongo, ObjectID, authenticateToken) => {
             error: 'Internal Server Error'
             });
         }
+        console.log('req.body ==>', req.body);
 
         */
     })
