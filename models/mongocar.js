@@ -164,6 +164,11 @@ class Mongobot {
       return findBy("peelo", "autoecoles", this.client, params);
     }
 
+    listQuizz(data=null){
+        return findBy("peelo", "autoecoles_quizz",this.client,data);
+    }
+    
+
 
     findAutoEcoleStudent(params){
  

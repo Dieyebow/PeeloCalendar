@@ -160,7 +160,7 @@ app.post('/signup/autoecole', authenticateToken, (req, res) => {
           console.log('autoecole taille ==> ', autoecole.length);
 
           if (autoecole.length) {
-            Mongo.disconnect();
+            //Mongo.disconnect();
             return res.status(200).send({
               success: false
             });
@@ -168,19 +168,19 @@ app.post('/signup/autoecole', authenticateToken, (req, res) => {
 
             Mongo.createAutoEcole(dataAutoEcole)
               .then((userCreated) => {
-                Mongo.disconnect();
+                //Mongo.disconnect();
                 return res.status(200).send({
                   success: true
                 });
               })
               .catch((erroruserCreated) => {
-                Mongo.disconnect();
+                //Mongo.disconnect();
               })
           }
         })
         .catch((error) => {
           console.log("on dirait qu'il y  erreur ", error);
-          Mongo.disconnect();
+          //Mongo.disconnect();
         })
 
     })
@@ -215,7 +215,7 @@ app.post('/check/user', (req, res) => {
           req.session.user = user
           req.session.token = token
           console.log('req.session.user ====> ', req.session.user);
-          Mongo.disconnect();
+          //Mongo.disconnect();
 
 
           return res.status(200).send({
@@ -224,7 +224,7 @@ app.post('/check/user', (req, res) => {
         })
 
         .catch((erroruser) => {
-          Mongo.disconnect();
+          //Mongo.disconnect();
         })
     });
 
@@ -244,7 +244,7 @@ app.get('/get/numbers/eleves', authenticateToken, (req, res) => {
         .then((eleves) => {
           console.log('autoecole == ' + eleves);
 
-          Mongo.disconnect();
+          //Mongo.disconnect();
           return res.status(200).send({
             counteleves: eleves
           });
@@ -280,7 +280,7 @@ app.get('/get/numbers/autoecoles', authenticateToken, (req, res) => {
         .then((autoecoles) => {
           console.log('autoecole == ' + autoecoles);
 
-          Mongo.disconnect();
+          //Mongo.disconnect();
           return res.status(200).send({
             countautoecole: autoecoles
           });
@@ -312,7 +312,7 @@ app.get('/get/numbers/:type', authenticateToken, (req, res) => {
         Mongo.countElevesAutoEcole()
           .then((eleves) => {
             console.log('Students count: ' + eleves);
-            Mongo.disconnect();
+            //Mongo.disconnect();
             return res.status(200).json({ count: eleves });
           })
           .catch((errorcount) => {
@@ -325,7 +325,7 @@ app.get('/get/numbers/:type', authenticateToken, (req, res) => {
         Mongo.countAutoEcole()
           .then((autoecoles) => {
             console.log('Driving schools count: ' + autoecoles);
-            Mongo.disconnect();
+            //Mongo.disconnect();
             return res.status(200).json({ count: autoecoles });
           })
           .catch((errorcount) => {
@@ -338,7 +338,7 @@ app.get('/get/numbers/:type', authenticateToken, (req, res) => {
         Mongo.countQuizz()
           .then((quizz) => {
             console.log('Driving schools count: ' + quizz);
-            Mongo.disconnect();
+            //Mongo.disconnect();
             return res.status(200).json({ count: quizz });
           })
           .catch((errorcount) => {
@@ -375,7 +375,7 @@ app.get('/get/datas/autoecoles', authenticateToken, (req, res) => {
         .then((autoecoles) => {
           console.log('autoecole == ' + autoecoles);
 
-          Mongo.disconnect();
+          ////Mongo.disconnect();
           return res.status(200).send({
             autoecoles: autoecoles
           });
@@ -407,7 +407,7 @@ app.get('/get/list/eleves', authenticateToken, (req, res) => {
         .then((eleves) => {
           console.log('autoecole == ' + eleves);
 
-          Mongo.disconnect();
+         // //Mongo.disconnect();
           return res.status(200).send({
             eleves: eleves
           });
@@ -536,7 +536,7 @@ app.post('/autobot/signup/user', (req, res) => {
               })
               .catch((error) => {
                 console.log("on dirait qu'il y  erreur ", error);
-                Mongo.disconnect();
+                //Mongo.disconnect();
               })
 
           }
@@ -590,7 +590,7 @@ app.post('/autoecole/checktypeuser', async (req, res) => {
 
       console.log('Monitor ===>', monitor);
       if (monitor.length) {
-        Mongo.disconnect();
+        ////Mongo.disconnect();
         return res.status(200).send(
           {
             "type": "redirection",
@@ -608,7 +608,7 @@ app.post('/autoecole/checktypeuser', async (req, res) => {
       })
 
       if (eleves.length) {
-        Mongo.disconnect();
+        //Mongo.disconnect();
         return res.status(200).send(
           {
             "type": "redirection",
@@ -640,6 +640,7 @@ app.post('/autoecole/checktypeuser', async (req, res) => {
 
 require('./routes/autoecole/post')(_, app, axios, Mongo, require("mongodb").ObjectID,authenticateToken);
 
+require('./routes/autoecole/get')(_, app, axios, Mongo,  require("mongodb").ObjectID,authenticateToken);
 
 
 

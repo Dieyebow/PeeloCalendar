@@ -1,5 +1,11 @@
 module.exports = (_, app, axios, Mongo, ObjectID, authenticateToken) => {
 
+    app.post('/add/question/quizz/:idquizz', authenticateToken, async (req, res) => {
+
+        console.log('nameQuizz ==>', req.body);
+
+    })
+   
     app.post('/create/quizz', authenticateToken, async (req, res) => {
 
         const { nameQuizz } = req.body;
@@ -30,7 +36,7 @@ module.exports = (_, app, axios, Mongo, ObjectID, authenticateToken) => {
                             }
                         ],
                         answer: {
-                            audio: "https://mojay.pro/assets/chatbot/storage/autoecole/quiz/panneaux/audios/q1/q1.mp3",
+                            audio: "https://mojay.pro/assets/chatbot/storage/autoecole/quiz/panneaux/audios/q1/q1a.mp3",
                             text: "{{goodanswer}} \n\n Le panneau <<stop>> oblige tous les usagers utilisant la voie de circulation (voitures, scooters, camions, cyclistes...) à marquer un arrêt sans dépasser la ligne blanche se trouvant au sol.",
 
                         }
