@@ -9,6 +9,7 @@ let axios = require("axios").default
 
 
 
+let fileUpload = require("express-fileupload");
 
 
 let slugify = require("slugify");
@@ -25,9 +26,11 @@ const jwt = require('jsonwebtoken');
 let app = express();
 
 let path_public = "/public";
-
+   
 
 dotenv.config({});
+
+app.use(fileUpload());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -624,7 +627,7 @@ app.post('/autoecole/checktypeuser', async (req, res) => {
 
 
 
-
+ 
 
     })
 
