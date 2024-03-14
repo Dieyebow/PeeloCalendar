@@ -7,31 +7,28 @@ module.exports = (_, app, axios, Mongo, ObjectID, authenticateToken) => {
         console.log('nameQuizz ==>', req.body);
        // const { nameQuizz, question } = req.body;
          //ceci est un tes pour voir si totu est bo
-        /*
-        try {
-            const connexion = await Mongo.connect();
-            console.log('connexion  == ', connexion);
-            console.log("On check le user  ==>", req.user);
-            const newQuestion = {
-            image: question.image,
-            text: question.text,
-            audio: question.audio,
-            buttons: question.buttons,
-            answer: question.answer
-            };
-            const updatedQuizz = await Mongo.addQuestionToQuizz(req.params.idquizz, newQuestion);
-            return res.status(200).send({
+        const { image, audio, answerAudio, text, buttons, textAnswer } = req.body;
+        
+        const newQuestion = {
+            image: image,
+            text:  text,
+            audio: audio,
+            buttons: JSON.parse(buttons),
+            answer: {
+                audio: answerAudio,
+                text:textAnswer
+            }
+        };
+       
+        
+        const updatedQuizz = await Mongo.addQuestionToQuizz(req.params.idquizz, newQuestion);
+        return res.status(200).send({
             updatedQuizz
-            });  
-        } catch (error) {
-            console.log('nous avons une erreur dans l execution', error);
-            return res.status(500).send({
-            error: 'Internal Server Error'
-            });
-        }
+        });
+       
         console.log('req.body ==>', req.body);
 
-        */
+        /**/
     })
    
     app.post('/create/quizz', authenticateToken, async (req, res) => {
