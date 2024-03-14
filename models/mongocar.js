@@ -83,6 +83,28 @@ async function findBy(database, table, client, id1) {
     return rak;
 }
 
+
+async function updatElement(database, table, client,condition, newListing) {
+    
+    var changement = Object.assign(newListing,{
+        $currentDate: {
+        update_date: true
+      }
+  });
+  
+  console.log('changement doneee updateOrder',changement);
+  
+    const result = await client
+      .db(database)
+      .collection(table)
+      .updateOne(condition,
+        changement);
+    console.log(
+      `New listing created with the following createMeme =>  id: ${result.insertedId}`
+    );
+    return result;
+  }
+
 async function createElement(database, table, client, newListing) {
     
     newListing.created_at  =  new Date(),
@@ -182,6 +204,10 @@ class Mongobot {
 
     createQuizz(userData){
         return createElement("peelo","autoecoles_quizz", this.client, userData)
+    }
+
+    addQuestionToQuizz(idquizz, newQuestion){
+        return  updatElement("peelo","autoecoles_quizz", this.client, {_id: ObjectId(idquizz)}, { $push: { "list_quizz": newQuestion } })
     }
 
 }
