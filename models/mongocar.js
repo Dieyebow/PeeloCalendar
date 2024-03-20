@@ -51,7 +51,7 @@ async function dropIt(database, table, client) {
 }
 
 //countAutoEcole
-async function countElements(database, table, client,data=null ) {
+async function countElements(database, table, client, data = null) {
     const count = await client.db(database).collection(table).countDocuments(data);
     console.log(` Nombre d'éléments dans le document : ${count}`);
     return count;
@@ -84,31 +84,31 @@ async function findBy(database, table, client, id1) {
 }
 
 
-async function updatElement(database, table, client,condition, newListing) {
-    
-    var changement = Object.assign(newListing,{
+async function updatElement(database, table, client, condition, newListing) {
+
+    var changement = Object.assign(newListing, {
         $currentDate: {
-        update_date: true
-      }
-  });
-  
-  console.log('changement doneee updateOrder',changement);
-  
+            update_date: true
+        }
+    });
+
+    console.log('changement doneee updateOrder', changement);
+
     const result = await client
-      .db(database)
-      .collection(table)
-      .updateOne(condition,
-        changement);
+        .db(database)
+        .collection(table)
+        .updateOne(condition,
+            changement);
     console.log(
-      `New listing created with the following createMeme =>  id: ${result.insertedId}`
+        `New listing created with the following createMeme =>  id: ${result.insertedId}`
     );
     return result;
-  }
+}
 
 async function createElement(database, table, client, newListing) {
-    
-    newListing.created_at  =  new Date(),
-    newListing.update_date =  new Date()
+
+    newListing.created_at = new Date(),
+        newListing.update_date = new Date()
 
     const result = await client
         .db(database)
@@ -121,6 +121,19 @@ async function createElement(database, table, client, newListing) {
 }
 
 
+async function findbyaggreate(database, table, client, aggregateit) {
+
+    var resultbi = await client
+        .db(database)
+        .collection(table)
+        .aggregate(aggregateit)
+    const rak = await resultbi.toArray();
+
+    return rak;
+}
+
+
+
 
 
 class Mongobot {
@@ -131,21 +144,25 @@ class Mongobot {
 
 
     connect() {
-
         return new Promise((resolve, reject) => {
+            if (this.client !== null) {
+                console.log('Using existing connection');
+                resolve(this.client);
+                return;
+            }
+
             console.log('config.uri', config.uri);
             MongoClient.connect(config.uri, (err, result) => {
                 if (err) {
                     reject(new Error(err));
                 } else {
+                    console.log('New connection created');
                     this.client = result;
                     resolve(result);
                 }
             });
         });
-
     }
-
 
     disconnect() {
         return this.client.close();
@@ -154,61 +171,117 @@ class Mongobot {
     findUser(params) {
         return findBy("peelo", "autoecole_user", this.client, params);
     }
-    findAutoEcole(params){
- 
-      return findBy("peelo", "autoecoles", this.client, params);
+    findAutoEcole(params) {
+
+        return findBy("peelo", "autoecoles", this.client, params);
 
     }
-    createAutoEcole(userData){
+    createAutoEcole(userData) {
         return createElement("peelo", "autoecoles", this.client, userData);
 
     }
 
-    countAllAutoEcole(){
+    countAllAutoEcole() {
         return countElements("peelo", "autoecoles", this.client)
     }
 
-    countAutoEcole(data=null){
-        return countElements("peelo", "autoecoles", this.client,data)
+    countAutoEcole(data = null) {
+        return countElements("peelo", "autoecoles", this.client, data)
     }
 
-    countQuizz(data=null){
-        return countElements("peelo", "autoecoles_quizz", this.client,data)
+    countQuizz(data = null) {
+        return countElements("peelo", "autoecoles_quizz", this.client, data)
 
     }
 
-    countElevesAutoEcole(data=null){
+    countElevesAutoEcole(data = null) {
         console.log('countAllAutoEcole')
-        return countElements("peelo", "autoecoles_current_user", this.client,data)
+        return countElements("peelo", "autoecoles_current_user", this.client, data)
     }
 
-    listAutoEcole(params){
-      return findBy("peelo", "autoecoles", this.client, params);
+    listAutoEcole(params) {
+        return findBy("peelo", "autoecoles", this.client, params);
     }
 
-    listQuizz(data=null){
-        return findBy("peelo", "autoecoles_quizz",this.client,data);
+    listQuizz(data = null) {
+        return findBy("peelo", "autoecoles_quizz", this.client, data);
     }
-    
 
 
-    findAutoEcoleStudent(params){
- 
+
+    findAutoEcoleStudent(params) {
+
         return findBy("peelo", "autoecoles_current_user", this.client, params);
-  
-      }
 
-    createAutoEcoleStudent(userData){
+    }
+
+    createAutoEcoleStudent(userData) {
         return createElement("peelo", "autoecoles_current_user", this.client, userData);
     }
 
-    createQuizz(userData){
-        return createElement("peelo","autoecoles_quizz", this.client, userData)
+    createQuizz(userData) {
+        return createElement("peelo", "autoecoles_quizz", this.client, userData)
     }
 
-    addQuestionToQuizz(idquizz, newQuestion){
-        return  updatElement("peelo","autoecoles_quizz", this.client, {_id: ObjectId(idquizz)}, { $push: { "list_quizz": newQuestion } })
+    addQuestionToQuizz(idquizz, newQuestion) {
+        return updatElement("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) }, { $push: { "list_quizz": newQuestion } })
     }
+
+
+
+
+
+    async updateQuestionToQuizz(idquizz, keyquizz, newQuestion) {
+
+        let question = await findBy("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) });
+
+        if (question.length) {
+            let list_quizz = question[0]['list_quizz'];
+            let oldQuestion = list_quizz[keyquizz];
+
+            oldQuestion.buttons = newQuestion.buttons;
+            oldQuestion.text = newQuestion.text;
+            oldQuestion.textAnswer = newQuestion.textAnswer
+
+            if (newQuestion.hasOwnProperty('image')) {
+                oldQuestion.image = newQuestion.image;
+            }
+
+            if (newQuestion.hasOwnProperty('audio')) {
+                oldQuestion.audio = newQuestion.audio;
+            }
+
+            if (newQuestion.hasOwnProperty('audioanswer')) {
+                oldQuestion.answer.audio = newQuestion.audioanswer;
+            }
+            return updatElement("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) }, { $set: { [`list_quizz.${keyquizz}`]: oldQuestion } });
+        }
+
+    }
+
+    findLiteListQuizz() {
+        var aggregate = [
+            {
+                $addFields: {
+                    number_quizz: { $size: "$list_quizz" }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    number_quizz: 1
+                }
+            },
+            { $sort: { _id: -1 } },
+            { $limit: 10 }
+        ];
+
+        return findbyaggreate("peelo", "autoecoles_quizz", this.client, aggregate)
+        //return findBy("peelo", "VARIABLES_VALUE", this.client, datas)
+    }
+
+
 
 }
 

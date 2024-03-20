@@ -53,6 +53,16 @@ app.use(
 );
 
 
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header('Access-Control-Allow-Methods', 'GET, POST');
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
 
 app.use(session({
   secret: process.env.SECRET_KEY_SESSION,
@@ -644,6 +654,8 @@ app.post('/autoecole/checktypeuser', async (req, res) => {
 require('./routes/autoecole/post')(_, app, axios, Mongo, require("mongodb").ObjectID,authenticateToken);
 
 require('./routes/autoecole/get')(_, app, axios, Mongo,  require("mongodb").ObjectID,authenticateToken);
+
+require('./routes/autoecole/chatbotapi')(_, app, axios, Mongo,  require("mongodb").ObjectID,authenticateToken);
 
 
 
