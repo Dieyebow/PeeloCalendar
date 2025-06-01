@@ -1,0 +1,761 @@
+[
+  {
+    "telephone": "",
+    "informations_demographiques": {
+      "age": null,
+      "genre": null,
+      "region": null
+    },
+    "profil_social": {
+      "statut": null,
+      "revenu": null
+    },
+    "comportement_utilisation": {
+      "frequence_app": null,
+      "formation_en_ligne": null,
+      "moment_utilisation": null
+    },
+    "besoin": {
+      "problemes_a_resoudre": null,
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": null,
+      "decouverte": null
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": null,
+      "recommandation": null
+    }
+  },
+  {
+    "telephone": "221764873426",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Sans emploi",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": "Design attractif"
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Autre"
+    },
+    "personnalite": {
+      "face_innovations": "Conservateur",
+      "face_peelo": "Conservateur"
+    },
+    "avis_application": {
+      "evaluation": "2 : Insatisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221707480357",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Autres région du Sénégal"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Rarement",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": "Rapidité"
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (Android)",
+      "decouverte": "Publicité en ligne"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "5 : Très satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221771329388",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Femme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": "Rapidité"
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221771637998",
+    "informations_demographiques": {
+      "age": "25-34 ans",
+      "genre": "Femme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": "Rapidité"
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221776021555",
+    "informations_demographiques": {
+      "age": "25-34 ans",
+      "genre": "Homme",
+      "region": "Autres région du Sénégal"
+    },
+    "profil_social": {
+      "statut": "Employé",
+      "revenu": "Entre 200K - 500 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (Android)",
+      "decouverte": "Autre"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221778034304",
+    "informations_demographiques": {
+      "age": "25-34 ans",
+      "genre": "Femme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Employé",
+      "revenu": "Entre 200K - 500 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (Android)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "2 : Insatisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221781911893",
+    "informations_demographiques": {
+      "age": "25-34 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Sans emploi",
+      "revenu": "Entre 200K - 500 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221772474342",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Autres région du Sénégal"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par semaine",
+      "formation_en_ligne": "Non, ce serait avec difficulté",
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "5 : Très satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221775998344",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": "Non, ce serait avec difficulté",
+      "moment_utilisation": "Pendant les pauses"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (Android)",
+      "decouverte": "Publicité en ligne"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "1 : Très insatisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221773916626",
+    "informations_demographiques": {
+      "age": "25-34 ans",
+      "genre": "Homme",
+      "region": "Autres région du Sénégal"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Rarement",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Pendant les pauses"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Publicité en ligne"
+    },
+    "personnalite": {
+      "face_innovations": "Conservateur",
+      "face_peelo": "Conservateur"
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221786804402",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Sans emploi",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": "Rapidité"
+    },
+    "profil_technologique": {
+      "appareil": "Ordinateur",
+      "decouverte": "Publicité en ligne"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "5 : Très satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221763154694",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par semaine",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221773971382",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Une fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Gagner du temps",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221762511482",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Autres région du Sénégal"
+    },
+    "profil_social": {
+      "statut": "Sans emploi",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "5 : Très satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221777187572",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Autres région du Sénégal"
+    },
+    "profil_social": {
+      "statut": "Sans emploi",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par semaine",
+      "formation_en_ligne": "Non, ce serait avec difficulté",
+      "moment_utilisation": "Pendant les pauses"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": "Rapidité"
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (Android)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "1 : Très insatisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221773669975",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Employé",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Publicité en ligne"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "5 : Très satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221784324270",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Renforcer mes connaissances",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (Android)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221775766854",
+    "informations_demographiques": {
+      "age": "25-34 ans",
+      "genre": "Femme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Employé",
+      "revenu": "Entre 200K - 500 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": "Non, ce serait avec difficulté",
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Gagner du temps",
+      "fonctionnalites_importantes": "Personnalisation des services"
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": null
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "5 : Très satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221766405422",
+    "informations_demographiques": {
+      "age": "Moins de 18 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 500 K - plus"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221786645754",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Femme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Une fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "1 : Très insatisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221762911851",
+    "informations_demographiques": {
+      "age": "25-34 ans",
+      "genre": "Homme",
+      "region": "Région de Dakar et périphérie"
+    },
+    "profil_social": {
+      "statut": "Etudiant",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Plusieurs fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Le soir"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": "Rapidité"
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Réseaux sociaux"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "4 : Satisfait",
+      "recommandation": "Oui"
+    }
+  },
+  {
+    "telephone": "221775337806",
+    "informations_demographiques": {
+      "age": "18-24 ans",
+      "genre": "Homme",
+      "region": "Autres région du Sénégal"
+    },
+    "profil_social": {
+      "statut": "Sans emploi",
+      "revenu": "Entre 100 - 200 K"
+    },
+    "comportement_utilisation": {
+      "frequence_app": "Une fois par jour",
+      "formation_en_ligne": null,
+      "moment_utilisation": "Tout au long de la journée"
+    },
+    "besoin": {
+      "problemes_a_resoudre": "Préparer mon permis",
+      "fonctionnalites_importantes": null
+    },
+    "profil_technologique": {
+      "appareil": "Smartphone (iOS)",
+      "decouverte": "Autre"
+    },
+    "personnalite": {
+      "face_innovations": null,
+      "face_peelo": null
+    },
+    "avis_application": {
+      "evaluation": "1 : Très insatisfait",
+      "recommandation": "Oui"
+    }
+  }
+]

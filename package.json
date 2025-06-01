@@ -9,7 +9,8 @@
   "author": "Mojay",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/local-auth": "^2.1.0",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google-cloud/local-auth": "^2.1.1",
     "axios": "^0.27.2",
     "axios-digest": "^0.3.0",
     "body-parser": "^1.20.0",
@@ -20,14 +21,17 @@
     "express-fileupload": "^1.4.3",
     "express-session": "^1.17.2",
     "form-data": "^4.0.0",
-    "fs": "0.0.1-security",
+    "fs": "^0.0.1-security",
     "googleapis": "^105.0.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.15",
     "moment": "^2.29.2",
     "mongodb": "^4.4.1",
     "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "papaparse": "^5.5.2",
     "path": "^0.12.7",
+    "pdf-parse": "^1.1.1",
     "slugify": "^1.6.0"
   }
 }
