@@ -1,2 +1,3 @@
 node_modules/
 public/assets/uploads/videos/*.mp4
+*.mp4
