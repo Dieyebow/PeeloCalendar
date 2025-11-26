@@ -98,20 +98,70 @@ const alreadyLogin = (req, res, next) => {
   next();
 }
 
-
+/*
 function authenticateToken(req, res, next) {
 
   const authHeader = req.headers['authorization'];
 
-  if (authHeader == null) return res.sendStatus(401);
+  console.log('========== authenticateToken DEBUG ==========');
+  console.log('URL:', req.url);
+  console.log('Authorization Header:', authHeader ? authHeader.substring(0, 50) + '...' : 'MANQUANT');
+  console.log('SECRET_KEY_JWT:', process.env.SECRET_KEY_JWT ? 'DÉFINI' : 'NON DÉFINI');
 
-  jwt.verify(authHeader, process.env.SECRET_KEY_JWT, (err, data) => {
-    if (err) return res.sendStatus(403);
+  if (authHeader == null) {
+    console.log('❌ Erreur: Authorization header manquant');
+    console.log('=============================================\n');
+    return res.sendStatus(401);
+  }
+
+  jwt.verify(authHeader, 'Grandneuydegeur', (err, data) => {
+    if (err) {
+      console.log('❌ Erreur JWT:', err.name, '-', err.message);
+      console.log('=============================================\n');
+      return res.sendStatus(403);
+    } 
+    console.log('✅ Token valide pour user:', data.user.email || data.user.displayName);
+    console.log('=============================================\n');
     req.user = data.user;
     next();
   });
 }
+*/
 
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+
+  console.log('========== authenticateToken DEBUG ==========');
+  console.log('URL:', req.url);
+  console.log('Authorization Header:', authHeader ? authHeader.substring(0, 50) + '...' : 'MANQUANT');
+  console.log('SECRET_KEY_JWT:', process.env.SECRET_KEY_JWT ? 'DÉFINI' : 'NON DÉFINI');
+
+  if (authHeader == null) {
+    console.log('❌ Erreur: Authorization header manquant');
+    console.log('=============================================\n');
+    return res.sendStatus(401);
+  }
+
+  // ⚠️ CORRECTION ICI: Extraire le token en retirant "Bearer "
+  const token = authHeader.startsWith('Bearer ') 
+    ? authHeader.substring(7)  // Retire "Bearer " (7 caractères)
+    : authHeader;
+
+  console.log('Token extrait:', token.substring(0, 50) + '...');
+
+  // Vérifier le token (PAS le header complet)
+  jwt.verify(token, 'Grandneuydegeur', (err, data) => {
+    if (err) {
+      console.log('❌ Erreur JWT:', err.name, '-', err.message);
+      console.log('=============================================\n');
+      return res.sendStatus(403);
+    } 
+    console.log('✅ Token valide pour user:', data.user.email || data.user.displayName);
+    console.log('=============================================\n');
+    req.user = data.user;
+    next();
+  });
+}
 
 async function extractTextFromPDF(pdfPath) {
   try {
@@ -982,7 +1032,7 @@ app.post('/autoecole/checktypeuser', async (req, res) => {
 
 });
 
-
+ 
 
 const generateRandomString = () => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -1001,6 +1051,9 @@ require('./routes/autoecole/get')(_, app, axios, Mongo, require("mongodb").Objec
 
 require('./routes/autoecole/chatbotapi')(_, app, axios, Mongo, cron, require("mongodb").ObjectID, authenticateToken, generateRandomString);
 
+// Routes du Dashboard PeeloCar (toutes les routes commencent par /dashboard)
+require('./peelocarDashboard')(_, app, axios, Mongo, require("mongodb").ObjectID, authenticateToken);
 
 
+ 
 app.listen(7568);
