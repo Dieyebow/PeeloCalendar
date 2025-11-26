@@ -1,2 +1,4 @@
 node_modules/
 *.mp4
+.env
+configs/googlecredentias.json
