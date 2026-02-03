@@ -4,7 +4,8 @@
   "description": "Plateforme permettant de relier le un compte google calgle",
   "main": "index.js",
   "scripts": {
-    "test": "run dev"
+    "test": "run dev",
+    "push": "bash scripts/deploy.sh"
   },
   "author": "Mojay",
   "license": "ISC",

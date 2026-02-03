@@ -448,8 +448,7 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
 
 
 
-                res.status(200).send({
-
+                const responseData = {
                     "type": "list",
                     "id_element": id_element,
                     "id_previous": null,
@@ -476,7 +475,11 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
                             ]
                         }
                     }
-                });
+                };
+                
+                console.log('✅ RESPONSE FROM /chatbot/list/cours:', JSON.stringify(responseData, null, 2));
+
+                res.status(200).send(responseData);
 
 
 
@@ -516,29 +519,40 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
     //https://autoecole.mojay.pro/chatbot/default/answer
 
     app.get('/chatbot/default/answer', async (req, res) => {
-        const connexion = await Mongo.connect();
-        const extractedData = extractData(req.body.datas);
-        const quizId = '65ef033cb6e694897123f878';
-        console.log('data extractedData ==> ', extractedData);
-
-        const { datas, lastInputType } = extractedData;
-        console.log('___________________________________________');
-
-        console.log('datas ===>', datas);
-        console.log('lastInputType ===>', lastInputType);
-
-        const condition = { $and: [{ quizId: ObjectID(quizId) }, { userId: ObjectID(datas.id_user) }] };
-        console.log('condition ===>', condition);
-
+        console.log('✅ ROUTE CALLED: /chatbot/default/answer');
+        console.log('👉 METHOD:', req.method);
+        console.log('👉 BODY:', JSON.stringify(req.body, null, 2));
+        
         try {
+            const connexion = await Mongo.connect();
+            
+            if (!req.body.datas) {
+                console.log('⚠️ WARNING: req.body.datas is missing/undefined!');
+            }
 
+            const extractedData = extractData(req.body.datas || []); // Prevent crash if undefined
+            const quizId = '65ef033cb6e694897123f878';
+            console.log('data extractedData ==> ', extractedData);
+    
+            const { datas, lastInputType } = extractedData;
+            console.log('___________________________________________');
+    
+            console.log('datas ===>', datas);
+            console.log('lastInputType ===>', lastInputType);
+    
+            const condition = { $and: [{ quizId: ObjectID(quizId) }, { userId: ObjectID(datas.id_user) }] };
+            console.log('condition ===>', condition);
+    
             let lastRecord = await Mongo.getLastTestRecord(condition);
             console.log('lastRecord ===>', lastRecord);
 
+            // Log that no response is sent currently
+            console.log('⚠️ WARNING: This route does NOT send any response to the client via res.send()!');
+    
         } catch (errorit) {
             console.log('nous avons une erreur dans l execution', errorit);
         }
-
+    
     });
 
 
@@ -1107,7 +1121,8 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
         console.log('/chatbot/default/answer ==> ', '/chatbot/default/answer');
         const extractedData = extractData(req.body.datas);
 
-       
+               console.log('extractedData ==> ', extractedData);
+
         const { datas, lastInputType } = extractedData;
 
  
@@ -1141,12 +1156,14 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
                     console.log('L UTILISATEUR A DEJA PAYE ===>');
                 }else{
                      console.log(' ON BLOQUE L UTILISATEUR ===>');
+                     console.log('✅ RESPONSE FROM POST /chatbot/default/answer (BLOCKED):', JSON.stringify(nextElementBlock, null, 2));
                      return res.status(200).send(nextElementBlock);
                 }
 
             }else{
                 console.log('L UTILISATEUR N A PAS PAYE ===>',nextElementBlock);
                // return true;
+                console.log('✅ RESPONSE FROM POST /chatbot/default/answer (NOT PAID):', JSON.stringify(nextElementBlock, null, 2));
                 return res.status(200).send(nextElementBlock);
 
             }
@@ -1173,6 +1190,7 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
                         const listQuizz = QuizzFound[0].list_quizz;
 
                         const flow = transformQuestionToButtons(listQuizz[0], quizId, 0);
+                        console.log('✅ RESPONSE FROM POST /chatbot/default/answer (QUIZ):', JSON.stringify(flow, null, 2));
                         res.status(200).send(flow);
                     }
                 } catch (errorit) {
@@ -1183,6 +1201,7 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
 
             if (_.startsWith(datas.last_input, 'Cours_')) {
                 let the_flow = await treatmentCours_(datas);
+                console.log('✅ RESPONSE FROM POST /chatbot/default/answer (COURS):', JSON.stringify(the_flow, null, 2));
                 res.status(200).send(the_flow);
 
 
@@ -1308,6 +1327,13 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
             })
         }
 
+
+    // Safety Fallback if no condition matched
+    if (!res.headersSent) {
+        console.log('⚠️ [chatbotapi] No specific handler matched. Sending default empty response.');
+        return res.status(200).send([]);
+    }
+    
     });
 
 }

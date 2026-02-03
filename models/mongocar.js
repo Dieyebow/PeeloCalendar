@@ -1058,6 +1058,63 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
         //return result[0] || { trueAnswersCount: 0, score: 0 };
     }
 
+    // Alias method for count (calls countElements)
+    // Signature: count(database, table, client, data = null)
+    count(database, table, client, data = null) {
+        return countElements(database, table, client, data);
+    }
+
+    // Count admin users
+    countUsers(data = null) {
+        return countElements("peelo", "autoecole_user", this.client, data);
+    }
+
+    // Count courses
+    countCourses(data = null) {
+        return countElements("peelo", "autoecoles_courses", this.client, data);
+    }
+
+    // Count tests
+    countTests(data = null) {
+        return countElements("peelo", "autoecoles_quizz_test", this.client, data);
+    }
+
+    // Alias method for findbyaggregate (calls findbyaggreate with correct spelling)
+    findbyaggregate(database, table, client, aggregateit) {
+        return findbyaggreate(database, table, client, aggregateit);
+    }
+
+    // Delete a quiz by ID
+    deleteQuizz(idquizz) {
+        return deleteOne("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) });
+    }
+
+    // Delete a specific question from a quiz
+    async deleteQuestionFromQuizz(idquizz, questionIndex) {
+        const quiz = await findBy("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) });
+
+        if (quiz.length && quiz[0].list_quizz && quiz[0].list_quizz[questionIndex]) {
+            // Remove the question at the specified index
+            quiz[0].list_quizz.splice(questionIndex, 1);
+
+            // Update the quiz with the modified list_quizz array
+            return updatElement("peelo", "autoecoles_quizz", this.client,
+                { _id: ObjectId(idquizz) },
+                { $set: { list_quizz: quiz[0].list_quizz } }
+            );
+        }
+        throw new Error('Quiz or question not found');
+    }
+
+    // Update quiz metadata (title, etc.)
+    updateQuizz(idquizz, updates) {
+        // updatElement already adds update_date via $currentDate, so we don't need to include it in updates
+        return updatElement("peelo", "autoecoles_quizz", this.client,
+            { _id: ObjectId(idquizz) },
+            { $set: updates }
+        );
+    }
+
 
 }
 

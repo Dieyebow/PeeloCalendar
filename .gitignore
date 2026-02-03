@@ -1,4 +1,12 @@
 node_modules/
-*.mp4
 .env
 configs/googlecredentias.json
+
+# Media uploads - DO NOT commit to git
+public/assets/uploads/
+*.mp4
+*.mp3
+*.mov
+*.avi
+*.wav
+*.ogg

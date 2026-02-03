@@ -13,7 +13,7 @@ module.exports = (_, app, axios, Mongo, ObjectId, authenticateToken) => {
 app.get('/dashboard/users/count', authenticateToken, async (req, res) => {
   try {
     await Mongo.connect();
-    const count = await Mongo.countElements("peelo", "autoecole_user", Mongo.client);
+    const count = await Mongo.countUsers();
 
     return res.status(200).json({
       success: true,
@@ -142,7 +142,7 @@ app.get('/dashboard/autoecoles/stats', authenticateToken, async (req, res) => {
       }
     ];
 
-    const stats = await Mongo.findbyaggreate("peelo", "autoecoles", Mongo.client, aggregate);
+    const stats = await Mongo.findbyaggregate("peelo", "autoecoles", Mongo.client, aggregate);
 
     return res.status(200).json({
       success: true,
@@ -388,7 +388,7 @@ app.get('/dashboard/quizz/stats', authenticateToken, async (req, res) => {
       }
     ];
 
-    const stats = await Mongo.findbyaggreate("peelo", "autoecoles_quizz", Mongo.client, aggregate);
+    const stats = await Mongo.findbyaggregate("peelo", "autoecoles_quizz", Mongo.client, aggregate);
 
     return res.status(200).json({
       success: true,
@@ -445,7 +445,7 @@ app.get('/dashboard/quizz/popular', authenticateToken, async (req, res) => {
       }
     ];
 
-    const popularQuizz = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const popularQuizz = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
 
     return res.status(200).json({
       success: true,
@@ -458,6 +458,629 @@ app.get('/dashboard/quizz/popular', authenticateToken, async (req, res) => {
 });
 
 // ============================================================
+// ROUTES POUR GESTION CRUD DES QUIZ (Create, Update, Delete)
+// ============================================================
+
+// Créer un nouveau quiz
+app.post('/dashboard/quizz', authenticateToken, async (req, res) => {
+  try {
+    const { title, id_user } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title is required'
+      });
+    }
+
+    await Mongo.connect();
+
+    const quizzData = {
+      title: title,
+      id_user: id_user || req.user._id,
+      list_quizz: [],
+      created_at: new Date(),
+      update_date: new Date()
+    };
+
+    const result = await Mongo.createQuizz(quizzData);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Quiz created successfully',
+      quizz_id: result.insertedId
+    });
+  } catch (error) {
+    console.error('Error in POST /dashboard/quizz:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// Modifier les métadonnées d'un quiz (titre, etc.)
+app.put('/dashboard/quizz/:id', authenticateToken, async (req, res) => {
+  try {
+    console.log('🔧 [PUT /dashboard/quizz/:id] Début de la requête');
+    console.log('📋 [PUT Quiz] ID:', req.params.id);
+    console.log('📋 [PUT Quiz] Body:', JSON.stringify(req.body));
+
+    const { id } = req.params;
+    const { title } = req.body;
+
+    if (!title) {
+      console.log('❌ [PUT Quiz] Erreur: title manquant');
+      return res.status(400).json({
+        success: false,
+        message: 'Title is required'
+      });
+    }
+
+    console.log('🔌 [PUT Quiz] Connexion à MongoDB...');
+    await Mongo.connect();
+    console.log('✅ [PUT Quiz] MongoDB connecté');
+
+    const updates = {
+      title: title
+      // update_date is automatically handled by updatElement
+    };
+
+    console.log('📝 [PUT Quiz] Updates à appliquer:', JSON.stringify(updates));
+    console.log('🔄 [PUT Quiz] Appel de Mongo.updateQuizz...');
+
+    const result = await Mongo.updateQuizz(id, updates);
+
+    console.log('✅ [PUT Quiz] Résultat de updateQuizz:', JSON.stringify(result));
+    console.log('🎉 [PUT Quiz] Mise à jour réussie');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Quiz updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ [PUT Quiz] ERREUR:', error);
+    console.error('❌ [PUT Quiz] Stack:', error.stack);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// Ajouter une question à un quiz
+app.post('/dashboard/quizz/:id/questions', authenticateToken, async (req, res) => {
+
+  console.log('req.files ====> ', req.files);
+
+  const { id } = req.params;
+  const { image, audio, audioanswer } = req.files || {};
+  const { text, buttons, textAnswer } = req.body;
+
+  // Generate unique filenames
+  let imageFilename, audioFilename, answerAudioFilename;
+  if (req.files && _.has(req.files, 'image')) {
+      imageFilename = generateUniqueFilename(image);
+  }
+  if (req.files && _.has(req.files, 'audio')) {
+      audioFilename = generateUniqueFilename(audio);
+  }
+  if (req.files && _.has(req.files, 'audioanswer')) {
+      answerAudioFilename = generateUniqueFilename(audioanswer);
+  }
+
+  // Move the uploaded files to the desired location
+  if (imageFilename) {
+      await moveFile(image, path.join(UPLOAD_BASE_PATH, 'images', imageFilename));
+  }
+  if (audioFilename) {
+      await moveFile(audio, path.join(UPLOAD_BASE_PATH, 'audios', audioFilename));
+  }
+  if (answerAudioFilename) {
+      await moveFile(audioanswer, path.join(UPLOAD_BASE_PATH, 'audios', answerAudioFilename));
+  }
+
+  const newQuestion = {
+      image: imageFilename ? `https://autoecole.mojay.pro/public/assets/uploads/images/${imageFilename}` : null,
+      text: text,
+      audio: audioFilename ? `https://autoecole.mojay.pro/public/assets/uploads/audios/${audioFilename}` : null,
+      buttons: JSON.parse(buttons),
+      answer: {
+          audio: answerAudioFilename ? `https://autoecole.mojay.pro/public/assets/uploads/audios/${answerAudioFilename}` : null,
+          text: textAnswer
+      }
+  };
+
+  try {
+      const connexion = await Mongo.connect();
+      const updatedQuizz = await Mongo.addQuestionToQuizz(id, newQuestion);
+      return res.status(200).send({
+          status: updatedQuizz,
+          updatedQuizz: newQuestion
+      });
+  } catch (error) {
+      console.log('Error during execution', error);
+      return res.status(500).send({ message: 'Internal server error' });
+  }
+});
+
+// Modifier une question spécifique dans un quiz
+app.put('/dashboard/quizz/:id/questions/:index', authenticateToken, async (req, res) => {
+  const { id, index } = req.params;
+  let dataToUpdate = {};
+
+  console.log('req.body ===>', req.body);
+  console.log('req.files ===>', req.files);
+
+  const { text, buttons, textAnswer } = req.body;
+  const keyQuestion = parseInt(index);
+
+  if (req.files && _.has(req.files, 'image')) {
+      console.log('====================> IMAGE');
+      const imageFilename = generateUniqueFilename(req.files.image);
+      await moveFile(req.files.image, path.join(UPLOAD_BASE_PATH, 'images', imageFilename));
+      dataToUpdate.image = `https://autoecole.mojay.pro/public/assets/uploads/images/${imageFilename}`;
+  }
+  if (req.files && _.has(req.files, 'audio')) {
+      console.log('====================> AUDIO');
+      const audioFilename = generateUniqueFilename(req.files.audio);
+      await moveFile(req.files.audio, path.join(UPLOAD_BASE_PATH, 'audios', audioFilename));
+      dataToUpdate.audio = `https://autoecole.mojay.pro/public/assets/uploads/audios/${audioFilename}`;
+  }
+
+  dataToUpdate.answer = {
+      audio: '',
+      text: ''
+  };
+
+  if (req.files && _.has(req.files, 'audioanswer')) {
+      console.log('====================> audioanswer');
+      const answerAudioFilename = generateUniqueFilename(req.files.audioanswer);
+      await moveFile(req.files.audioanswer, path.join(UPLOAD_BASE_PATH, 'audios', answerAudioFilename));
+      dataToUpdate.answer.audio = `https://autoecole.mojay.pro/public/assets/uploads/audios/${answerAudioFilename}`;
+  }
+
+  dataToUpdate.text = text;
+  dataToUpdate.buttons = JSON.parse(buttons);
+  dataToUpdate.answer.text = textAnswer;
+
+  try {
+      const connexion = await Mongo.connect();
+      const updatedQuizz = await Mongo.updateQuestionToQuizz(id, keyQuestion, dataToUpdate);
+
+      console.log('updatedQuizz ===>', updatedQuizz);
+      return res.status(200).json({
+        success: true,
+        message: 'Question updated successfully'
+      });
+  } catch (errorit) {
+      console.log('nous avons une erreur dans l execution');
+      return res.status(500).json({ error: 'Internal server error', message: errorit.message });
+  }
+});
+
+// Supprimer une question spécifique d'un quiz
+app.delete('/dashboard/quizz/:id/questions/:index', authenticateToken, async (req, res) => {
+  try {
+    const { id, index } = req.params;
+    const questionIndex = parseInt(index);
+
+    if (isNaN(questionIndex) || questionIndex < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid question index'
+      });
+    }
+
+    await Mongo.connect();
+
+    await Mongo.deleteQuestionFromQuizz(id, questionIndex);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Question deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /dashboard/quizz/:id/questions/:index:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// Supprimer un quiz complet
+app.delete('/dashboard/quizz/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await Mongo.connect();
+
+    const result = await Mongo.deleteQuizz(id);
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Quiz not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Quiz deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /dashboard/quizz/:id:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// ============================================================
+// ROUTES POUR UPLOAD DE FICHIERS (Images et Audio)
+// ============================================================
+
+// Helper functions pour l'upload
+const fs = require('fs');
+const path = require('path');
+
+// Chemin absolu vers le dossier uploads
+const UPLOAD_BASE_PATH = path.join(__dirname, 'public', 'assets', 'uploads');
+
+// ============================================================
+// ENDPOINT DEDIÉ - UPLOAD DE FICHIERS (Images, Audios, Vidéos)
+// ============================================================
+
+// Upload de fichiers multimédia - retourne l'URL absolue
+// Route: /dashboard/upload/:type où type = image, audio, ou video
+app.post('/dashboard/upload/:type', authenticateToken, async (req, res) => {
+  try {
+    const { type } = req.params;
+    console.log('📤 [Upload Media] Début de la requête');
+    console.log('📋 [Upload Media] Type demandé:', type);
+    console.log('📋 [Upload Media] req.files:', req.files);
+
+    // Vérifier que le type est valide
+    const validTypes = {
+      'image': 'images',
+      'audio': 'audios',
+      'video': 'videos'
+    };
+
+    if (!validTypes[type]) {
+      console.log('❌ [Upload Media] Type non supporté:', type);
+      return res.status(400).json({
+        success: false,
+        message: `Invalid type. Must be one of: image, audio, video`
+      });
+    }
+
+    // Vérifier qu'un fichier est fourni
+    if (!req.files || Object.keys(req.files).length === 0) {
+      console.log('❌ [Upload Media] Aucun fichier fourni');
+      return res.status(400).json({
+        success: false,
+        message: 'No file provided'
+      });
+    }
+
+    // Récupérer le fichier (chercher avec la clé correspondant au type)
+    let file = req.files[type] || req.files.file;
+
+    if (!file) {
+      console.log('❌ [Upload Media] Fichier non trouvé avec la clé:', type);
+      return res.status(400).json({
+        success: false,
+        message: `File must be uploaded with key: '${type}' or 'file'`
+      });
+    }
+
+    const subfolder = validTypes[type];
+    console.log(`📷 [Upload Media] Fichier ${type} reçu:`, file.name);
+
+    // Générer un nom de fichier unique
+    const uniqueFilename = generateUniqueFilename(file);
+    console.log('🔤 [Upload Media] Nom unique généré:', uniqueFilename);
+
+    // Définir le chemin de destination
+    const uploadPath = path.join(UPLOAD_BASE_PATH, subfolder, uniqueFilename);
+    console.log('📂 [Upload Media] Chemin de destination:', uploadPath);
+
+    // Déplacer le fichier vers le dossier de destination
+    await moveFile(file, uploadPath);
+    console.log('✅ [Upload Media] Fichier déplacé avec succès');
+
+    // Construire l'URL absolue
+    const fileUrl = `https://autoecole.mojay.pro/public/assets/uploads/${subfolder}/${uniqueFilename}`;
+    console.log('🔗 [Upload Media] URL générée:', fileUrl);
+
+    console.log('🎉 [Upload Media] Upload réussi');
+    return res.status(200).json({
+      success: true,
+      message: `${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`,
+      fileUrl: fileUrl,
+      filename: uniqueFilename,
+      fileType: type
+    });
+
+  } catch (error) {
+    console.error('❌ [Upload Media] ERREUR:', error);
+    console.error('❌ [Upload Media] Stack:', error.stack);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
+const moveFile = (file, destination) => {
+  return new Promise((resolve, reject) => {
+    file.mv(destination, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+};
+
+const generateUniqueFilename = (file) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+  for (let i = 0; i < 4; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters.charAt(randomIndex);
+  }
+  const timestamp = Date.now();
+  const extension = path.extname(file.name);
+  return `${randomString}_${timestamp}${extension}`;
+};
+
+// Upload d'une image pour une question de quiz
+app.post('/dashboard/quizz/:id/questions/:index/upload-image', authenticateToken, async (req, res) => {
+  try {
+    const { id, index } = req.params;
+    const questionIndex = parseInt(index);
+
+    if (isNaN(questionIndex) || questionIndex < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid question index'
+      });
+    }
+
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file provided'
+      });
+    }
+
+    const imageFile = req.files.image;
+    const imageFilename = generateUniqueFilename(imageFile);
+    const uploadPath = path.join(UPLOAD_BASE_PATH, 'images', imageFilename);
+
+    await moveFile(imageFile, uploadPath);
+
+    const imageUrl = `https://autoecole.mojay.pro/public/assets/uploads/images/${imageFilename}`;
+
+    await Mongo.connect();
+
+    // Get current question to preserve other fields
+    const quiz = await Mongo.findQuizz({ _id: ObjectId(id) });
+    if (!quiz.length || !quiz[0].list_quizz[questionIndex]) {
+      return res.status(404).json({
+        success: false,
+        message: 'Quiz or question not found'
+      });
+    }
+
+    const currentQuestion = quiz[0].list_quizz[questionIndex];
+    const updatedQuestion = {
+      text: currentQuestion.text,
+      buttons: currentQuestion.buttons,
+      image: imageUrl,
+      answer: currentQuestion.answer
+    };
+
+    if (currentQuestion.audio) updatedQuestion.audio = currentQuestion.audio;
+
+    await Mongo.updateQuestionToQuizz(id, questionIndex, updatedQuestion);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Image uploaded successfully',
+      imageUrl: imageUrl
+    });
+  } catch (error) {
+    console.error('Error in POST /dashboard/quizz/:id/questions/:index/upload-image:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// Upload d'un audio pour une question de quiz
+app.post('/dashboard/quizz/:id/questions/:index/upload-audio', authenticateToken, async (req, res) => {
+  try {
+    const { id, index } = req.params;
+    const questionIndex = parseInt(index);
+
+    if (isNaN(questionIndex) || questionIndex < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid question index'
+      });
+    }
+
+    if (!req.files || !req.files.audio) {
+      return res.status(400).json({
+        success: false,
+        message: 'No audio file provided'
+      });
+    }
+
+    const audioFile = req.files.audio;
+    const audioFilename = generateUniqueFilename(audioFile);
+    const uploadPath = path.join(UPLOAD_BASE_PATH, 'audios', audioFilename);
+
+    await moveFile(audioFile, uploadPath);
+
+    const audioUrl = `https://autoecole.mojay.pro/public/assets/uploads/audios/${audioFilename}`;
+
+    await Mongo.connect();
+
+    // Get current question to preserve other fields
+    const quiz = await Mongo.findQuizz({ _id: ObjectId(id) });
+    if (!quiz.length || !quiz[0].list_quizz[questionIndex]) {
+      return res.status(404).json({
+        success: false,
+        message: 'Quiz or question not found'
+      });
+    }
+
+    const currentQuestion = quiz[0].list_quizz[questionIndex];
+    const updatedQuestion = {
+      text: currentQuestion.text,
+      buttons: currentQuestion.buttons,
+      audio: audioUrl,
+      answer: currentQuestion.answer
+    };
+
+    if (currentQuestion.image) updatedQuestion.image = currentQuestion.image;
+
+    await Mongo.updateQuestionToQuizz(id, questionIndex, updatedQuestion);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Audio uploaded successfully',
+      audioUrl: audioUrl
+    });
+  } catch (error) {
+    console.error('Error in POST /dashboard/quizz/:id/questions/:index/upload-audio:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// Upload d'un audio pour la réponse d'une question
+app.post('/dashboard/quizz/:id/questions/:index/upload-answer-audio', authenticateToken, async (req, res) => {
+  try {
+    const { id, index } = req.params;
+    const questionIndex = parseInt(index);
+
+    if (isNaN(questionIndex) || questionIndex < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid question index'
+      });
+    }
+
+    if (!req.files || !req.files.audioanswer) {
+      return res.status(400).json({
+        success: false,
+        message: 'No audio file provided'
+      });
+    }
+
+    const audioFile = req.files.audioanswer;
+    const audioFilename = generateUniqueFilename(audioFile);
+    const uploadPath = path.join(UPLOAD_BASE_PATH, 'audios', audioFilename);
+
+    await moveFile(audioFile, uploadPath);
+
+    const audioUrl = `https://autoecole.mojay.pro/public/assets/uploads/audios/${audioFilename}`;
+
+    await Mongo.connect();
+
+    // Get current question to preserve other fields
+    const quiz = await Mongo.findQuizz({ _id: ObjectId(id) });
+    if (!quiz.length || !quiz[0].list_quizz[questionIndex]) {
+      return res.status(404).json({
+        success: false,
+        message: 'Quiz or question not found'
+      });
+    }
+
+    const currentQuestion = quiz[0].list_quizz[questionIndex];
+    const updatedQuestion = {
+      text: currentQuestion.text,
+      buttons: currentQuestion.buttons,
+      audioanswer: audioUrl,
+      answer: currentQuestion.answer
+    };
+
+    if (currentQuestion.image) updatedQuestion.image = currentQuestion.image;
+    if (currentQuestion.audio) updatedQuestion.audio = currentQuestion.audio;
+
+    await Mongo.updateQuestionToQuizz(id, questionIndex, updatedQuestion);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Answer audio uploaded successfully',
+      audioUrl: audioUrl
+    });
+  } catch (error) {
+    console.error('Error in POST /dashboard/quizz/:id/questions/:index/upload-answer-audio:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// Upload multiple files at once (image + audio + answer audio) pour une nouvelle question
+app.post('/dashboard/quizz/:id/questions/upload-full', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text, buttons, textAnswer } = req.body;
+
+    if (!text || !buttons || !textAnswer) {
+      return res.status(400).json({
+        success: false,
+        message: 'text, buttons, and textAnswer are required'
+      });
+    }
+
+    const basePath = 'https://autoecole.mojay.pro';
+    const midway = 'public/assets/uploads';
+    let imageUrl = '';
+    let audioUrl = '';
+    let answerAudioUrl = '';
+
+    // Upload image if provided
+    if (req.files && req.files.image) {
+      const imageFilename = generateUniqueFilename(req.files.image);
+      await moveFile(req.files.image, path.join(UPLOAD_BASE_PATH, 'images', imageFilename));
+      imageUrl = `${basePath}/${midway}/images/${imageFilename}`;
+    }
+
+    // Upload audio if provided
+    if (req.files && req.files.audio) {
+      const audioFilename = generateUniqueFilename(req.files.audio);
+      await moveFile(req.files.audio, path.join(UPLOAD_BASE_PATH, 'audios', audioFilename));
+      audioUrl = `${basePath}/${midway}/audios/${audioFilename}`;
+    }
+
+    // Upload answer audio if provided
+    if (req.files && req.files.audioanswer) {
+      const answerAudioFilename = generateUniqueFilename(req.files.audioanswer);
+      await moveFile(req.files.audioanswer, path.join(UPLOAD_BASE_PATH, 'audios', answerAudioFilename));
+      answerAudioUrl = `${basePath}/${midway}/audios/${answerAudioFilename}`;
+    }
+
+    const newQuestion = {
+      image: imageUrl,
+      text: text,
+      audio: audioUrl,
+      buttons: JSON.parse(buttons),
+      answer: {
+        audio: answerAudioUrl,
+        text: textAnswer
+      }
+    };
+
+    await Mongo.connect();
+    await Mongo.addQuestionToQuizz(id, newQuestion);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Question with files added successfully',
+      question: newQuestion
+    });
+  } catch (error) {
+    console.error('Error in POST /dashboard/quizz/:id/questions/upload-full:', error);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+});
+
+// ============================================================
 // ROUTES POUR AUTOECOLES_QUIZZ_TEST (Résultats des tests)
 // ============================================================
 
@@ -465,7 +1088,7 @@ app.get('/dashboard/quizz/popular', authenticateToken, async (req, res) => {
 app.get('/dashboard/tests/count', authenticateToken, async (req, res) => {
   try {
     await Mongo.connect();
-    const count = await Mongo.countElements("peelo", "autoecoles_quizz_test", Mongo.client);
+    const count = await Mongo.countTests();
 
     return res.status(200).json({
       success: true,
@@ -520,7 +1143,11 @@ app.get('/dashboard/tests/by-quiz/:id', authenticateToken, async (req, res) => {
 // Statistiques globales des tests
 app.get('/dashboard/tests/stats', authenticateToken, async (req, res) => {
   try {
+    console.log('📊 [Tests Stats] Début de la requête');
+
+    console.log('🔌 [Tests Stats] Connexion à MongoDB...');
     await Mongo.connect();
+    console.log('✅ [Tests Stats] MongoDB connecté');
 
     const aggregate = [
       {
@@ -545,15 +1172,19 @@ app.get('/dashboard/tests/stats', authenticateToken, async (req, res) => {
       }
     ];
 
-    const stats = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    console.log('📈 [Tests Stats] Exécution de l\'agrégation...');
+    const stats = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    console.log('✅ [Tests Stats] Stats récupérées:', JSON.stringify(stats));
 
+    console.log('🎉 [Tests Stats] Réponse envoyée avec succès');
     return res.status(200).json({
       success: true,
       stats: stats[0] || {}
     });
   } catch (error) {
-    console.error('Error in /dashboard/tests/stats:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ [Tests Stats] ERREUR:', error);
+    console.error('❌ [Tests Stats] Stack:', error.stack);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });
 
@@ -598,7 +1229,7 @@ app.get('/dashboard/tests/recent', authenticateToken, async (req, res) => {
       }
     ];
 
-    const recentTests = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const recentTests = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
 
     return res.status(200).json({
       success: true,
@@ -613,9 +1244,13 @@ app.get('/dashboard/tests/recent', authenticateToken, async (req, res) => {
 // Classement des meilleurs scores
 app.get('/dashboard/tests/leaderboard', authenticateToken, async (req, res) => {
   try {
+    console.log('🏆 [Tests Leaderboard] Début de la requête');
     const limit = parseInt(req.query.limit) || 10;
+    console.log('🏆 [Tests Leaderboard] Limit:', limit);
 
+    console.log('🔌 [Tests Leaderboard] Connexion à MongoDB...');
     await Mongo.connect();
+    console.log('✅ [Tests Leaderboard] MongoDB connecté');
 
     const aggregate = [
       {
@@ -659,15 +1294,19 @@ app.get('/dashboard/tests/leaderboard', authenticateToken, async (req, res) => {
       }
     ];
 
-    const leaderboard = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    console.log('📈 [Tests Leaderboard] Exécution de l\'agrégation...');
+    const leaderboard = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    console.log('✅ [Tests Leaderboard] Leaderboard récupéré, nombre de résultats:', leaderboard.length);
 
+    console.log('🎉 [Tests Leaderboard] Réponse envoyée avec succès');
     return res.status(200).json({
       success: true,
       leaderboard: leaderboard
     });
   } catch (error) {
-    console.error('Error in /dashboard/tests/leaderboard:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ [Tests Leaderboard] ERREUR:', error);
+    console.error('❌ [Tests Leaderboard] Stack:', error.stack);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });
 
@@ -679,7 +1318,7 @@ app.get('/dashboard/tests/leaderboard', authenticateToken, async (req, res) => {
 app.get('/dashboard/courses/count', authenticateToken, async (req, res) => {
   try {
     await Mongo.connect();
-    const count = await Mongo.countElements("peelo", "autoecoles_courses", Mongo.client);
+    const count = await Mongo.countCourses();
 
     return res.status(200).json({
       success: true,
@@ -757,7 +1396,7 @@ app.get('/dashboard/courses/stats', authenticateToken, async (req, res) => {
       }
     ];
 
-    const stats = await Mongo.findbyaggreate("peelo", "autoecoles_courses", Mongo.client, aggregate);
+    const stats = await Mongo.findbyaggregate("peelo", "autoecoles_courses", Mongo.client, aggregate);
 
     return res.status(200).json({
       success: true,
@@ -1017,15 +1656,37 @@ app.delete('/dashboard/courses/:id/chapters/:chapterId', authenticateToken, asyn
 // Vue d'ensemble globale
 app.get('/dashboard/kpis/global', authenticateToken, async (req, res) => {
   try {
+    console.log('📊 [KPIs Global] Début de la requête');
+
+    console.log('🔌 [KPIs Global] Connexion à MongoDB...');
     await Mongo.connect();
+    console.log('✅ [KPIs Global] MongoDB connecté');
 
+    console.log('📈 [KPIs Global] Récupération totalAutoecoles...');
     const totalAutoecoles = await Mongo.countAutoEcole();
-    const totalStudents = await Mongo.countElevesAutoEcole();
-    const totalQuizz = await Mongo.countQuizz();
-    const totalCourses = await Mongo.countElements("peelo", "autoecoles_courses", Mongo.client);
-    const totalTests = await Mongo.countElements("peelo", "autoecoles_quizz_test", Mongo.client);
-    const nonPermis = await Mongo.countElevesNonPermis();
+    console.log('✅ [KPIs Global] totalAutoecoles =', totalAutoecoles);
 
+    console.log('📈 [KPIs Global] Récupération totalStudents...');
+    const totalStudents = await Mongo.countElevesAutoEcole();
+    console.log('✅ [KPIs Global] totalStudents =', totalStudents);
+
+    console.log('📈 [KPIs Global] Récupération totalQuizz...');
+    const totalQuizz = await Mongo.countQuizz();
+    console.log('✅ [KPIs Global] totalQuizz =', totalQuizz);
+
+    console.log('📈 [KPIs Global] Récupération totalCourses...');
+    const totalCourses = await Mongo.countCourses();
+    console.log('✅ [KPIs Global] totalCourses =', totalCourses);
+
+    console.log('📈 [KPIs Global] Récupération totalTests...');
+    const totalTests = await Mongo.countTests();
+    console.log('✅ [KPIs Global] totalTests =', totalTests);
+
+    console.log('📈 [KPIs Global] Récupération nonPermis...');
+    const nonPermis = await Mongo.countElevesNonPermis();
+    console.log('✅ [KPIs Global] nonPermis - résultat obtenu');
+
+    console.log('🎉 [KPIs Global] Toutes les données récupérées avec succès');
     return res.status(200).json({
       success: true,
       kpis: {
@@ -1038,8 +1699,9 @@ app.get('/dashboard/kpis/global', authenticateToken, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error in /dashboard/kpis/global:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ [KPIs Global] ERREUR:', error);
+    console.error('❌ [KPIs Global] Stack:', error.stack);
+    return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });
 
@@ -1105,7 +1767,7 @@ app.get('/dashboard/kpis/performance', authenticateToken, async (req, res) => {
       }
     ];
 
-    const performance = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const performance = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
 
     return res.status(200).json({
       success: true,
@@ -1170,7 +1832,7 @@ app.get('/dashboard/stats/inscriptions/monthly', authenticateToken, async (req, 
       }
     ];
 
-    const monthlyData = await Mongo.findbyaggreate("peelo", "autoecoles_current_user", Mongo.client, aggregate);
+    const monthlyData = await Mongo.findbyaggregate("peelo", "autoecoles_current_user", Mongo.client, aggregate);
 
     const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
                     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -1229,7 +1891,7 @@ app.get('/dashboard/stats/tests/timeline', authenticateToken, async (req, res) =
       }
     ];
 
-    const timeline = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const timeline = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
 
     const data = timeline.map(item => ({
       date: item._id,
@@ -1264,7 +1926,7 @@ app.get('/dashboard/stats/performance/success-rate', authenticateToken, async (r
     await Mongo.connect();
 
     // Stats globales
-    const totalTests = await Mongo.countElements("peelo", "autoecoles_quizz_test", Mongo.client);
+    const totalTests = await Mongo.countTests();
 
     const aggregateSuccess = [
       {
@@ -1281,7 +1943,7 @@ app.get('/dashboard/stats/performance/success-rate', authenticateToken, async (r
       }
     ];
 
-    const globalStats = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateSuccess);
+    const globalStats = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateSuccess);
     const stats = globalStats[0] || { totalTests: 0, successfulTests: 0, failedTests: 0 };
     const successRate = stats.totalTests > 0 ? ((stats.successfulTests / stats.totalTests) * 100).toFixed(2) : 0;
 
@@ -1318,7 +1980,7 @@ app.get('/dashboard/stats/performance/success-rate', authenticateToken, async (r
       }
     ];
 
-    const byQuizzData = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateByQuizz);
+    const byQuizzData = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateByQuizz);
 
     const byQuizz = byQuizzData.map(item => ({
       quizzId: item.quizzId,
@@ -1369,7 +2031,7 @@ app.get('/dashboard/stats/performance/progression', authenticateToken, async (re
       }
     ];
 
-    const studentsData = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const studentsData = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
 
     let improving = 0;
     let stable = 0;
@@ -1458,7 +2120,7 @@ app.get('/dashboard/stats/performance/difficult-quizz', authenticateToken, async
       }
     ];
 
-    const difficultQuizz = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const difficultQuizz = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
 
     const data = difficultQuizz.map(item => {
       let difficulty = "Facile";
@@ -1515,7 +2177,7 @@ app.get('/dashboard/stats/engagement/activity', authenticateToken, async (req, r
       }
     ];
 
-    const activeResult = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const activeResult = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
     const activeCount = activeResult[0] ? activeResult[0].activeCount : 0;
     const inactiveCount = totalStudents - activeCount;
 
@@ -1557,7 +2219,7 @@ app.get('/dashboard/stats/engagement/study-time', authenticateToken, async (req,
       }
     ];
 
-    const studentsData = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
+    const studentsData = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregate);
 
     const totalTests = studentsData.reduce((sum, s) => sum + s.testsCount, 0);
     const avgTestsPerStudent = studentsData.length > 0 ? (totalTests / studentsData.length).toFixed(1) : 0;
@@ -1627,7 +2289,7 @@ app.get('/dashboard/stats/autoecoles/ranking', authenticateToken, async (req, re
       }
     ];
 
-    const autoecoles = await Mongo.findbyaggreate("peelo", "autoecoles", Mongo.client, aggregate);
+    const autoecoles = await Mongo.findbyaggregate("peelo", "autoecoles", Mongo.client, aggregate);
 
     const ranking = autoecoles.map((ae, index) => ({
       rank: index + 1,
@@ -1667,7 +2329,7 @@ app.get('/dashboard/stats/admin/premium-distribution', authenticateToken, async 
       }
     ];
 
-    const premiumResult = await Mongo.findbyaggreate("peelo", "autoecoles_current_user", Mongo.client, aggregatePremium);
+    const premiumResult = await Mongo.findbyaggregate("peelo", "autoecoles_current_user", Mongo.client, aggregatePremium);
     const premiumCount = premiumResult[0] ? premiumResult[0].premiumCount : 0;
     const standardCount = totalStudents - premiumCount;
 
@@ -1710,7 +2372,7 @@ app.get('/dashboard/stats/admin/license-status', authenticateToken, async (req, 
       }
     ];
 
-    const withLicenseResult = await Mongo.findbyaggreate("peelo", "autoecoles_current_user", Mongo.client, aggregateWithLicense);
+    const withLicenseResult = await Mongo.findbyaggregate("peelo", "autoecoles_current_user", Mongo.client, aggregateWithLicense);
     const withLicenseCount = withLicenseResult[0] ? withLicenseResult[0].withLicenseCount : 0;
     const withoutLicenseCount = totalStudents - withLicenseCount;
 
@@ -1752,9 +2414,9 @@ app.get('/dashboard/stats/overview', authenticateToken, async (req, res) => {
     ] = await Promise.all([
       Mongo.countElevesAutoEcole(),
       Mongo.countAutoEcole(),
-      Mongo.countElements("peelo", "autoecoles_quizz_test", Mongo.client),
+      Mongo.countTests(),
       Mongo.countQuizz(),
-      Mongo.countElements("peelo", "autoecoles_courses", Mongo.client)
+      Mongo.countCourses()
     ]);
 
     // Élèves actifs (30 derniers jours)
@@ -1778,7 +2440,7 @@ app.get('/dashboard/stats/overview', authenticateToken, async (req, res) => {
       }
     ];
 
-    const activeResult = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateActive);
+    const activeResult = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateActive);
     const activeStudents = activeResult[0] ? activeResult[0].activeCount : 0;
 
     // Stats tests ce mois
@@ -1801,7 +2463,7 @@ app.get('/dashboard/stats/overview', authenticateToken, async (req, res) => {
       }
     ];
 
-    const thisMonthResult = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateThisMonth);
+    const thisMonthResult = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateThisMonth);
     const testsThisMonth = thisMonthResult[0] ? thisMonthResult[0].count : 0;
     const avgScoreThisMonth = thisMonthResult[0] ? thisMonthResult[0].avgScore : 0;
 
@@ -1815,7 +2477,7 @@ app.get('/dashboard/stats/overview', authenticateToken, async (req, res) => {
       }
     ];
 
-    const avgScoreResult = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateAvgScore);
+    const avgScoreResult = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateAvgScore);
     const avgScoreGlobal = avgScoreResult[0] ? avgScoreResult[0].avgScore : 0;
 
     // Taux de réussite
@@ -1832,7 +2494,7 @@ app.get('/dashboard/stats/overview', authenticateToken, async (req, res) => {
       }
     ];
 
-    const successRateResult = await Mongo.findbyaggreate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateSuccessRate);
+    const successRateResult = await Mongo.findbyaggregate("peelo", "autoecoles_quizz_test", Mongo.client, aggregateSuccessRate);
     const successRate = successRateResult[0]
       ? ((successRateResult[0].successfulTests / successRateResult[0].totalTests) * 100).toFixed(2)
       : 0;
@@ -1880,6 +2542,100 @@ app.get('/dashboard/health', (req, res) => {
     message: 'PeeloCar Dashboard API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// ============================================================
+// AUTHENTICATION - LOGIN WITH GOOGLE
+// ============================================================
+
+// Login via Google Firebase
+app.post('/dashboard/login', async (req, res) => {
+  try {
+    console.log('📧 [Login] Début de la requête /dashboard/login');
+
+    // Validation des données
+    if (!req.body.user) {
+      console.log('❌ [Login] Données utilisateur manquantes');
+      return res.status(400).json({
+        success: false,
+        message: 'Données utilisateur manquantes'
+      });
+    }
+
+    const { displayName, photoURL, email, stsTokenManager } = req.body.user;
+    console.log('📋 [Login] Email:', email);
+    console.log('📋 [Login] DisplayName:', displayName);
+
+    if (!email) {
+      console.log('❌ [Login] Email manquant');
+      return res.status(400).json({
+        success: false,
+        message: 'Email requis'
+      });
+    }
+
+    // Connexion à MongoDB
+    console.log('🔌 [Login] Connexion à MongoDB...');
+    await Mongo.connect();
+    console.log('✅ [Login] MongoDB connecté');
+
+    // Recherche de l'utilisateur
+    const condition = { email: email };
+    console.log('🔍 [Login] Recherche utilisateur avec email:', email);
+
+    const users = await Mongo.findUser(condition);
+    console.log('📊 [Login] Utilisateurs trouvés:', users.length);
+
+    if (!users.length) {
+      console.log('❌ [Login] Utilisateur non autorisé');
+      return res.status(401).json({
+        success: false,
+        message: `Vous n'êtes pas autorisé à accéder à cette page !`
+      });
+    }
+
+    const user = users[0];
+    console.log('✅ [Login] Utilisateur trouvé:', user.email);
+
+    // Génération du JWT
+    const jwt = require('jsonwebtoken');
+    const SECRET_KEY = process.env.SECRET_KEY_JWT || 'Grandneuydegeur';
+
+    const token = jwt.sign({ user: user }, SECRET_KEY, {
+      expiresIn: '24h'
+    });
+    console.log('🔑 [Login] Token JWT généré');
+
+    // Sauvegarde dans la session (optionnel)
+    if (req.session) {
+      req.session.user = user;
+      req.session.token = token;
+      console.log('💾 [Login] Session sauvegardée');
+    }
+
+    console.log('🎉 [Login] Connexion réussie pour:', user.email);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Connexion réussie',
+      token: token,
+      user: {
+        _id: user._id,
+        email: user.email,
+        displayName: user.displayName || displayName,
+        photoURL: user.photoURL || photoURL
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ [Login] ERREUR:', error);
+    console.error('❌ [Login] Stack:', error.stack);
+    return res.status(500).json({
+      success: false,
+      error: 'Erreur serveur lors de la connexion',
+      message: error.message
+    });
+  }
 });
 
 }; // Fin du module
