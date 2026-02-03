@@ -51,6 +51,9 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SERVER" << 'ENDSSH'
     echo "📂 Navigating to PeeloCalendar..."
     cd /home/ec2-user/PeeloCalendar
     
+    echo "🧹 Cleaning untracked files..."
+    git clean -fd
+    
     echo "🔄 Resetting local changes and pulling from origin..."
     git reset --hard HEAD
     git pull origin main
