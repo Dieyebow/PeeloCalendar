@@ -4,6 +4,7 @@
   "description": "Plateforme permettant de relier le un compte google calgle",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon autoecole.js",
     "test": "run dev",
     "push": "bash scripts/deploy.sh"
   },
@@ -30,9 +31,14 @@
     "mongodb": "^4.4.1",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
+    "nodemailer": "^8.0.1",
     "papaparse": "^5.5.2",
     "path": "^0.12.7",
     "pdf-parse": "^1.1.1",
     "slugify": "^1.6.0"
+  },
+  "devDependencies": {
+    "maildev": "^2.2.1",
+    "nodemon": "^3.1.11"
   }
 }

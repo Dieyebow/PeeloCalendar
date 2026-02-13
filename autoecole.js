@@ -65,20 +65,13 @@ app.engine('html', require('ejs').renderFile);
 
 app.use(
   cors({
-    origin: "*",
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://autoecole.mojay.pro'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept'],
+    credentials: true,
+    optionsSuccessStatus: 200
   })
 );
-
-
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header('Access-Control-Allow-Methods', 'GET, POST');
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
 
 
 app.use(session({
@@ -140,52 +133,39 @@ function authenticateToken(req, res, next) {
 */
 
 function authenticateToken(req, res, next) {
-  // ⚠️ AUTHENTIFICATION DÉSACTIVÉE TEMPORAIREMENT POUR LE DÉVELOPPEMENT
-  console.log('⚠️  AUTH BYPASS - Route:', req.url);
-
-  // Mock user pour les tests
-  req.user = {
-    _id: '65a03b6e2f704c698db2bba6',
-    displayName: 'Mamadou DIEYE',
-    email: 'dieyebow@gmail.com'
-  };
-
-  next();
-
-  /* AUTHENTIFICATION DÉSACTIVÉE - CODE ORIGINAL CI-DESSOUS
+  // Récupération du header Authorization
   const authHeader = req.headers['authorization'];
-
-  console.log('========== authenticateToken DEBUG ==========');
-  console.log('URL:', req.url);
-  console.log('Authorization Header:', authHeader ? authHeader.substring(0, 50) + '...' : 'MANQUANT');
-  console.log('SECRET_KEY_JWT:', process.env.SECRET_KEY_JWT ? 'DÉFINI' : 'NON DÉFINI');
+  
+  // LOGS DEBUG TEMPORAIRES (à retirer en prod si trop bavard)
+  // console.log('🛡️ [Auth Middleware] URL:', req.url);
 
   if (authHeader == null) {
-    console.log('❌ Erreur: Authorization header manquant');
-    console.log('=============================================\n');
+    // console.log('❌ [Auth Middleware] Header Authorization manquant');
     return res.sendStatus(401);
   }
 
-  // ⚠️ CORRECTION ICI: Extraire le token en retirant "Bearer "
+  // Extraction du token (supporte "Bearer TOKEN" et "TOKEN")
   const token = authHeader.startsWith('Bearer ')
-    ? authHeader.substring(7)  // Retire "Bearer " (7 caractères)
+    ? authHeader.substring(7, authHeader.length)
     : authHeader;
 
-  console.log('Token extrait:', token.substring(0, 50) + '...');
+  const SECRET_KEY = process.env.SECRET_KEY_JWT || 'Grandneuydegeur';
 
-  // Vérifier le token (PAS le header complet)
-  jwt.verify(token, 'Grandneuydegeur', (err, data) => {
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
     if (err) {
-      console.log('❌ Erreur JWT:', err.name, '-', err.message);
-      console.log('=============================================\n');
+      console.log('❌ [Auth Middleware] Token invalide:', err.message);
       return res.sendStatus(403);
     }
-    console.log('✅ Token valide pour user:', data.user.email || data.user.displayName);
-    console.log('=============================================\n');
-    req.user = data.user;
+    
+    // On attache decoded.user à req.user
+    console.log('🔓 [Auth Middleware] Full Decoded Token:', JSON.stringify(decoded)); 
+    req.user = decoded.user || decoded;  
+    
+    // console.log('✅ [Auth Middleware] User authentifié:', req.user.email);
     next();
   });
-  */
+
+
 }
 
 async function extractTextFromPDF(pdfPath) {
@@ -236,7 +216,8 @@ app.get('/', async (req, res) => {
 
 
 //app.get('/dashboard',requireLogin, (req, res) => {
-app.get('/dashboard', (req, res) => {
+// [RENAMED] Original /dashboard moved to /autoecole-dashboard to avoid conflict with React frontend
+app.get('/autoecole-dashboard', (req, res) => {
 
   console.log('nous sommes dans le dashboard', req.session.user);
   //res.write('nous sommes dans le dashboard');
@@ -1099,4 +1080,4 @@ require('./peelocarDashboard')(_, app, axios, Mongo, require("mongodb").ObjectID
 app.listen(7568, () => {
   console.log('✅ Server started on port 7568');
 });
-// Nodemon verification test
+// Nodemon verification test - forced restart 6 (Google Auth)

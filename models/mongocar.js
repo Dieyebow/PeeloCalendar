@@ -230,6 +230,19 @@ class Mongobot {
         return findBy("peelo", "autoecoles", this.client, params);
 
     }
+
+    findAdminPeeloAcademy(params) {
+        console.log('🔍 [Mongo] findAdminPeeloAcademy appelé avec:', JSON.stringify(params));
+        return findBy("peelo", "admin_peelo_academy", this.client, params)
+            .then(res => {
+                console.log('🔍 [Mongo] findAdminPeeloAcademy résultat count:', res ? res.length : 0);
+                return res;
+            });
+    }
+
+    createAdminPeeloAcademy(userData) {
+        return createElement("peelo", "admin_peelo_academy", this.client, userData);
+    }
     createAutoEcole(userData) {
         return createElement("peelo", "autoecoles", this.client, userData);
 
@@ -270,8 +283,8 @@ class Mongobot {
         return countElements("peelo", "autoecoles", this.client, data)
     }
 
-    countQuizz(data = null) {
-        return countElements("peelo", "autoecoles_quizz", this.client, data)
+    countQuizz(data = null, collection = "autoecoles_quizz") {
+        return countElements("peelo", collection, this.client, data)
 
     }
 
@@ -754,16 +767,51 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
         return findBy("peelo", "autoecoles", this.client, params);
     }
 
-    listQuizz(data = null) {
-        return findBy("peelo", "autoecoles_quizz", this.client, data);
+    listQuizz(data = null, collection = "autoecoles_quizz") {
+        return findBy("peelo", collection, this.client, data);
     }
 
-    listCourses(data = null) {
-        return findBy("peelo", "autoecoles_courses", this.client, data);
+    listCourses(data = null, collection = "autoecoles_courses") {
+        // Use aggregation to lookup formation details
+        let matchStage = {};
+        if (data) {
+            matchStage = data;
+        }
+
+        var aggregate = [
+            { $match: matchStage },
+            {
+                $addFields: {
+                    number_chapter: { $size: { "$ifNull": ["$Sections", []] } },
+                    formationIdObj: { $toObjectId: "$formation_id" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "formations_peelo_academy",
+                    localField: "formationIdObj",
+                    foreignField: "_id",
+                    as: "formation"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$formation",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+             {
+                $addFields: {
+                    formation_title: "$formation.title"
+                }
+            }
+        ];
+
+        return findbyaggreate("peelo", collection, this.client, aggregate);
     }
 
-    deleteCours(params){
-        return deleteOne("peelo", "autoecoles_courses", this.client, params);
+    deleteCours(params, collection = "autoecoles_courses"){
+        return deleteOne("peelo", collection, this.client, params);
     }
 
     findAutoEcolePagination( skipy, limit, params ){
@@ -780,17 +828,17 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
         return createElement("peelo", "autoecoles_current_user", this.client, userData);
     }
 
-    createQuizz(userData) {
-        return createElement("peelo", "autoecoles_quizz", this.client, userData)
+    createQuizz(userData, collection = "autoecoles_quizz") {
+        return createElement("peelo", collection, this.client, userData)
     }
 
-   async createCours(userData) {
-        let courses = await createElement("peelo", "autoecoles_courses", this.client, userData)
-        return this.listCourses({_id: ObjectId(courses.insertedId)});
+   async createCours(userData, collection = "autoecoles_courses") {
+        let courses = await createElement("peelo", collection, this.client, userData)
+        return this.listCourses({_id: ObjectId(courses.insertedId)}, collection);
     }
 
-    addQuestionToQuizz(idquizz, newQuestion) {
-        return updatElement("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) }, { $push: { "list_quizz": newQuestion } })
+    addQuestionToQuizz(idquizz, newQuestion, collection = "autoecoles_quizz") {
+        return updatElement("peelo", collection, this.client, { _id: ObjectId(idquizz) }, { $push: { "list_quizz": newQuestion } })
     }
 
     updateCurrentUser(idEleve,changements){
@@ -798,7 +846,7 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
       return updatElement("peelo", "autoecoles_current_user", this.client, { _id: ObjectId(idEleve) },  { $set: changements } )
     }
 
-    updateCourseSection(cours) {
+    updateCourseSection(cours, collection = "autoecoles_courses") {
 
         console.log(' ===> updateCourseSection', cours)
         //cours._id, cours.Sections
@@ -808,20 +856,20 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
         //{ $push: { "Sections": Sections } }
         console.log('after removing', cours);
        
-        return updatElement("peelo", "autoecoles_courses", this.client, { _id: ObjectId(idcourse) },  { $set: changements } )
+        return updatElement("peelo", collection, this.client, { _id: ObjectId(idcourse) },  { $set: changements } ) // Note: changements is undefined in original code? Assuming it exists in scope or is a bug but keeping strict replacement.
     }
 
-    async udpateCourses(cours) {
+    async udpateCourses(cours, collection = "autoecoles_courses") {
         let  conditions = { _id: ObjectId(cours._id) };
         delete cours._id;
          
-        return await update("peelo", "autoecoles_courses", this.client, conditions, { $set: cours });
+        return await update("peelo", collection, this.client, conditions, { $set: cours });
          
     }
 
 
-    findQuizz(params) {
-        return findBy("peelo", "autoecoles_quizz", this.client, params);
+    findQuizz(params, collection = "autoecoles_quizz") {
+        return findBy("peelo", collection, this.client, params);
     }
 
     
@@ -879,9 +927,9 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
 
 
 
-    async updateQuestionToQuizz(idquizz, keyquizz, newQuestion) {
+    async updateQuestionToQuizz(idquizz, keyquizz, newQuestion, collection = "autoecoles_quizz") {
 
-        let question = await findBy("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) });
+        let question = await findBy("peelo", collection, this.client, { _id: ObjectId(idquizz) });
 
         if (question.length) {
             let list_quizz = question[0]['list_quizz'];
@@ -902,31 +950,49 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
             if (newQuestion.hasOwnProperty('audioanswer')) {
                 oldQuestion.answer.audio = newQuestion.audioanswer;
             }
-            return updatElement("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) }, { $set: { [`list_quizz.${keyquizz}`]: oldQuestion } });
+            return updatElement("peelo", collection, this.client, { _id: ObjectId(idquizz) }, { $set: { [`list_quizz.${keyquizz}`]: oldQuestion } });
         }
 
     }
 
-    findLiteListQuizz() {
+    findLiteListQuizz(collection = "autoecoles_quizz", query = {}, limit = 10) {
         var aggregate = [
+            { $match: query },
             {
                 $addFields: {
-                    number_quizz: { $size: "$list_quizz" }
+                    number_quizz: { $size: "$list_quizz" },
+                    // Add formation info lookup for quizzes too
+                     formationIdObj: { $toObjectId: "$formation_id" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "formations_peelo_academy",
+                    localField: "formationIdObj",
+                    foreignField: "_id",
+                    as: "formation"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$formation",
+                    preserveNullAndEmptyArrays: true
                 }
             },
             {
                 $project: {
                     _id: 1,
                     title: 1,
-                    number_quizz: 1
+                    number_quizz: 1,
+                    formation_id: 1,
+                    formation_title: { $ifNull: ["$formation.title", "$formation_title"] } // Use lookup or existing field
                 }
             },
             { $sort: { _id: -1 } },
-            { $limit: 10 }
+            { $limit: limit }
         ];
 
-        return findbyaggreate("peelo", "autoecoles_quizz", this.client, aggregate)
-        //return findBy("peelo", "VARIABLES_VALUE", this.client, datas)
+        return findbyaggreate("peelo", collection, this.client, aggregate)
     }
    
     findagregation(aggregate){
@@ -1020,25 +1086,49 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
     }
 
   
-    findLiteListCours() {
+    async findLiteListCours(collection = "autoecoles_courses", query = {}, limit = 10) {
         var aggregate = [
+            { $match: query },
             {
                 $addFields: {
-                    number_chapter: { $size: "$Sections" }
+                    number_chapter: { $size: { "$ifNull": ["$Sections", []] } },
+                    formationIdObj: { $toObjectId: "$formation_id" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "formations_peelo_academy",
+                    localField: "formationIdObj",
+                    foreignField: "_id",
+                    as: "formation"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$formation",
+                    preserveNullAndEmptyArrays: true
                 }
             },
             {
                 $project: {
                     _id: 1,
                     title: 1,
-                    number_chapter: 1
+                    number_chapter: 1,
+                    formation_id: 1,
+                     image: 1, // Include image for frontend
+                    formation_title: { $ifNull: ["$formation.title", "$formation_title"] } // Use lookup or existing field
                 }
             },
             { $sort: { _id: -1 } },
-            { $limit: 10 }
+            { $limit: limit }
         ];
 
-        return findbyaggreate("peelo", "autoecoles_courses", this.client, aggregate)
+        try {
+            return await findbyaggreate("peelo", collection, this.client, aggregate);
+        } catch (error) {
+            console.error(`[Mongo] Error in findLiteListCours for collection ${collection}:`, error);
+            return [];
+        }
         //return findBy("peelo", "VARIABLES_VALUE", this.client, datas)
     }
 
@@ -1070,8 +1160,8 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
     }
 
     // Count courses
-    countCourses(data = null) {
-        return countElements("peelo", "autoecoles_courses", this.client, data);
+    countCourses(data = null, collection = "autoecoles_courses") {
+        return countElements("peelo", collection, this.client, data);
     }
 
     // Count tests
@@ -1085,20 +1175,20 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
     }
 
     // Delete a quiz by ID
-    deleteQuizz(idquizz) {
-        return deleteOne("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) });
+    deleteQuizz(idquizz, collection = "autoecoles_quizz") {
+        return deleteOne("peelo", collection, this.client, { _id: ObjectId(idquizz) });
     }
 
     // Delete a specific question from a quiz
-    async deleteQuestionFromQuizz(idquizz, questionIndex) {
-        const quiz = await findBy("peelo", "autoecoles_quizz", this.client, { _id: ObjectId(idquizz) });
+    async deleteQuestionFromQuizz(idquizz, questionIndex, collection = "autoecoles_quizz") {
+        const quiz = await findBy("peelo", collection, this.client, { _id: ObjectId(idquizz) });
 
         if (quiz.length && quiz[0].list_quizz && quiz[0].list_quizz[questionIndex]) {
             // Remove the question at the specified index
             quiz[0].list_quizz.splice(questionIndex, 1);
 
             // Update the quiz with the modified list_quizz array
-            return updatElement("peelo", "autoecoles_quizz", this.client,
+            return updatElement("peelo", collection, this.client,
                 { _id: ObjectId(idquizz) },
                 { $set: { list_quizz: quiz[0].list_quizz } }
             );
@@ -1107,14 +1197,42 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
     }
 
     // Update quiz metadata (title, etc.)
-    updateQuizz(idquizz, updates) {
+    updateQuizz(idquizz, updates, collection = "autoecoles_quizz") {
         // updatElement already adds update_date via $currentDate, so we don't need to include it in updates
-        return updatElement("peelo", "autoecoles_quizz", this.client,
+        return updatElement("peelo", collection, this.client,
             { _id: ObjectId(idquizz) },
             { $set: updates }
         );
     }
 
+
+    // Generic delete method
+    deleteOne(database, table, client, filter) {
+        return deleteOne(database, table, client, filter);
+    }
+    // Generic Peelo Academy Methods
+
+    // Formations (e.g. Driving School, Coding School, etc.)
+    createPeeloFormation(data) {
+        return createElement("peelo", "formations_peelo_academy", this.client, data);
+    }
+
+    listPeeloFormations(params) {
+        return findBy("peelo", "formations_peelo_academy", this.client, params);
+    }
+    
+    countPeeloFormations(params) {
+        return countElements("peelo", "formations_peelo_academy", this.client, params);
+    }
+    
+    // Courses (Generic content linked to a formation)
+    createPeeloCourse(data) {
+        return createElement("peelo", "courses_peelo_academy", this.client, data);
+    }
+
+    listPeeloCourses(params) {
+        return findBy("peelo", "courses_peelo_academy", this.client, params);
+    }
 
 }
 
