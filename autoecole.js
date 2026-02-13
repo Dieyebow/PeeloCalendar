@@ -65,7 +65,7 @@ app.engine('html', require('ejs').renderFile);
 
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://autoecole.mojay.pro'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://autoecole.mojay.pro', 'https://academy.peelo.chat', 'https://www.academy.peelo.chat'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept'],
     credentials: true,
