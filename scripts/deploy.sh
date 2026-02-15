@@ -58,6 +58,9 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SERVER" << 'ENDSSH'
     git reset --hard HEAD
     git pull origin main
     
+    echo "📦 Installing dependencies..."
+    npm install
+
     echo "🔄 Restarting autoecole.js via PM2..."
     pm2 restart autoecole.js
     
