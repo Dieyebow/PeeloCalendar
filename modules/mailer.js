@@ -4,8 +4,11 @@ const nodemailer = require('nodemailer');
 const sendWelcomeEmail = async (email, password, name) => {
   let transporter;
 
-  // Use local MailDev if no specific SMTP config
-  if (!process.env.SMTP_USER) {
+  // Use local MailDev if no specific SMTP config and not in production
+  // OR if specifically forced to use local dev
+  const useLocalDev = !process.env.EMAIL_PASSWORD && process.env.NODE_ENV !== 'production';
+
+  if (useLocalDev) {
     console.log('📬 [EMAIL] Using Local MailDev (localhost:1025)');
     transporter = nodemailer.createTransport({
       host: '0.0.0.0',
@@ -14,20 +17,33 @@ const sendWelcomeEmail = async (email, password, name) => {
       ignoreTLS: true,
     });
   } else {
-    // Config SMTP réelle
+    // Config SMTP réelle (LWS)
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
-      secure: false,
+      host: 'mail77.lwspanel.com',
+      port: 465,
+      secure: true, // SSL direct
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: 'peelochat@aipeelo.xyz',
+        pass: process.env.EMAIL_PASSWORD
       },
+      dkim: {
+        domainName: 'aipeelo.xyz',
+        keySelector: 'dkim',
+        privateKey: process.env.DKIM_PRIVATE_KEY,
+        cacheDir: false,
+        skipFields: 'message-id:date'
+      }
     });
   }
 
+  // Déterminer l'URL de login
+  const BASE_URL = process.env.BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://autoecole.mojay.pro' : 'http://localhost:7568');
+  // En prod, le front est sur academy.peelo.chat, pas autoecole.mojay.pro (qui est l'API)
+  // On va durcir le lien front si on est en prod
+  const FRONTEND_URL = process.env.NODE_ENV === 'production' ? 'https://academy.peelo.chat' : 'http://localhost:3000';
+
   const mailOptions = {
-    from: process.env.SMTP_FROM || '"Peelo Academy" <no-reply@peelo.chat>',
+    from: '"Peelo Academy" <peelochat@aipeelo.xyz>',
     to: email,
     subject: 'Bienvenue sur Peelo Academy - Vos accès Admin',
     html: `
@@ -38,7 +54,7 @@ const sendWelcomeEmail = async (email, password, name) => {
           <p style="margin: 0;"><strong>Email :</strong> ${email}</p>
           <p style="margin: 10px 0 0 0;"><strong>Mot de passe :</strong> ${password}</p>
         </div>
-        <p>Connectez-vous dès maintenant : <a href="http://localhost:3000/login" style="color: #F97316;">Accéder au Dashboard</a></p>
+        <p>Connectez-vous dès maintenant : <a href="${FRONTEND_URL}/login" style="color: #F97316;">Accéder au Dashboard</a></p>
         <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">Si vous n'êtes pas à l'origine de cette demande, veuillez ignorer cet email.</p>
       </div>
     `,
@@ -48,7 +64,7 @@ const sendWelcomeEmail = async (email, password, name) => {
     const info = await transporter.sendMail(mailOptions);
     console.log('✅ Email envoyé: %s', info.messageId);
     
-    if (!process.env.SMTP_USER) {
+    if (useLocalDev) {
         console.log('📬 Email captured by MailDev. Open http://localhost:1080 to view it.');
     }
     
