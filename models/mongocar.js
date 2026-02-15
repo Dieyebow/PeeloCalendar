@@ -1234,6 +1234,10 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
         return findBy("peelo", "courses_peelo_academy", this.client, params);
     }
 
+    deletePeeloCourse(id, collection = "courses_peelo_academy") {
+        return deleteOne("peelo", collection, this.client, { _id: ObjectId(id) });
+    }
+
 }
 
 
