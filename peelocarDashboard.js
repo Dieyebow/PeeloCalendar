@@ -124,6 +124,7 @@ app.post('/dashboard/courses/create', authenticateToken, async (req, res) => {
         if (!courseData.formation_id) return res.status(400).json({ error: 'Formation ID required' });
 
         console.log('📚 [Courses] Creating course for formation:', courseData.formation_id);
+        console.log('🖼️ [Courses] Image URL received:', courseData.image);
         
         await Mongo.connect();
         
