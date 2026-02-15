@@ -1140,7 +1140,14 @@ app.delete('/dashboard/quizz/:id', authenticateToken, async (req, res) => {
 // fs and path are already required at the top
 
 // Chemin absolu vers le dossier uploads
+// Chemin absolu vers le dossier uploads
 const UPLOAD_BASE_PATH = path.join(__dirname, 'public', 'assets', 'uploads');
+
+// Définir l'URL de base pour les fichiers statiques
+// Priorité: 1. Variable d'env BASE_URL, 2. Prod hardcodé, 3. Localhost
+const BASE_URL = process.env.BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://autoecole.mojay.pro' : 'http://localhost:7568');
+
+console.log('🌐 [Config] BASE_URL set to:', BASE_URL);
 
 // ============================================================
 // ENDPOINT DEDIÉ - UPLOAD DE FICHIERS (Images, Audios, Vidéos)
@@ -1205,11 +1212,9 @@ app.post('/dashboard/upload/:type', authenticateToken, async (req, res) => {
     await moveFile(file, uploadPath);
     console.log('✅ [Upload Media] Fichier déplacé avec succès');
 
-    // Construire l'URL absolue
-    const protocol = req.protocol;
-    const host = req.get('host');
+    // Construire l'URL absolue en utilisant BASE_URL
     const relativeUrl = `/public/assets/uploads/${subfolder}/${uniqueFilename}`;
-    const fileUrl = `${protocol}://${host}${relativeUrl}`;
+    const fileUrl = `${BASE_URL}${relativeUrl}`;
 
     console.log('🔗 [Upload Media] URL générée:', fileUrl);
 
@@ -1283,7 +1288,8 @@ app.post('/dashboard/quizz/:id/questions/:index/upload-image', authenticateToken
 
     await moveFile(imageFile, uploadPath);
 
-    const imageUrl = `https://autoecole.mojay.pro/public/assets/uploads/images/${imageFilename}`;
+    // Utilisation de BASE_URL
+    const imageUrl = `${BASE_URL}/public/assets/uploads/images/${imageFilename}`;
 
     await Mongo.connect();
 
@@ -1365,7 +1371,8 @@ app.post('/dashboard/quizz/:id/questions/:index/upload-audio', authenticateToken
 
     await moveFile(audioFile, uploadPath);
 
-    const audioUrl = `https://autoecole.mojay.pro/public/assets/uploads/audios/${audioFilename}`;
+    // Utilisation de BASE_URL
+    const audioUrl = `${BASE_URL}/public/assets/uploads/audios/${audioFilename}`;
 
     await Mongo.connect();
 
@@ -1448,7 +1455,8 @@ app.post('/dashboard/quizz/:id/questions/:index/upload-answer-audio', authentica
 
     await moveFile(audioFile, uploadPath);
 
-    const audioUrl = `https://autoecole.mojay.pro/public/assets/uploads/audios/${audioFilename}`;
+    // Utilisation de BASE_URL
+    const audioUrl = `${BASE_URL}/public/assets/uploads/audios/${audioFilename}`;
 
     await Mongo.connect();
     
