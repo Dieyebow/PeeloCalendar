@@ -1080,9 +1080,9 @@ require('./peelocarDashboard')(_, app, axios, Mongo, require("mongodb").ObjectID
 // ACADEMY ENDPOINTS
 // ==========================================
 
-app.post('/academy/formations', async function (req, res) {
+app.post('/academy/cours', async function (req, res) {
     console.log("=========================================");
-    console.log("📥 [POST /academy/formations] Payload reçu:");
+    console.log("📥 [POST /academy/cours] Payload reçu:");
     console.log(JSON.stringify(req.body, null, 2));
 
     try {
@@ -1143,9 +1143,9 @@ app.post('/academy/formations', async function (req, res) {
             const treated_Courses = truncateTitles(formations, 24);
             const sections_row = treated_Courses.map((cours) => {
                 return {
-                    id: `Formation_${cours._id.toString()}`,
+                    id: `Cours_${cours._id.toString()}`,
                     title: cours.title,
-                    description: `Ce cours a ${cours.number_chapter || 0} chapitre${(cours.number_chapter || 0) > 1 ? 's' : ''}`
+                    description: `Ce cours a ${cours.number_chapter || 0} chapitre ${(cours.number_chapter || 0) > 1 ? 's' : ''}`
                 };
             });  
             
@@ -1157,19 +1157,19 @@ app.post('/academy/formations', async function (req, res) {
                     "type": "list",
                     "header": {
                         "type": "text",
-                        "text": "formations disponibles"
+                        "text": "Cours disponibles"
                     },
                     "body": {
-                        "text": "La liste des formations disponibles"
+                        "text": "La liste des cours disponibles"
                     },
                     "footer": {
-                        "text": "Choisissez une formation pour commencer"
+                        "text": "Choisissez un cours pour commencer"
                     },
                     "action": {
                         "button": "Démarrer",
                         "sections": [
                             {
-                                "title": "Les formations",
+                                "title": "Les cours",
                                 "rows": sections_row
                             }
                         ]
