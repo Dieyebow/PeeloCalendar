@@ -1084,9 +1084,64 @@ app.post('/academy/formations', async function (req, res) {
     console.log("=========================================");
     console.log("📥 [POST /academy/formations] Payload reçu:");
     console.log(JSON.stringify(req.body, null, 2));
-    console.log("=========================================");
 
-    return res.status(200).json({ success: true, message: "Payload reçu et loggé" });
+    try {
+        const datas = req.body.datas || [];
+        const botData = datas.find(d => d.idvariable === "idbot");
+        
+        if (!botData || !botData.value) {
+            console.log("❌ Aucun idbot trouvé dans le payload");
+            return res.status(400).json({ success: false, error: "Missing idbot in payload" });
+        }
+
+        const idbot = botData.value;
+        console.log(`🔍 Recherche de l'admin avec idbot: ${idbot}`);
+
+        await Mongo.connect();
+        
+        // Find admin by idbot
+        const adminData = await Mongo.findAdminPeeloAcademy({ idbot: idbot });
+        
+        if (!adminData || adminData.length === 0) {
+            console.log("❌ Aucun administrateur trouvé avec cet idbot");
+            return res.status(404).json({ success: false, error: "Admin not found with this idbot" });
+        }
+
+        const adminId = adminData[0]._id.toString();
+        console.log(`✅ Admin trouvé: ${adminData[0].email} (ID: ${adminId})`);
+
+        // Find formations owned by this admin
+        const queryFormations = {
+            $or: [
+                { owner_admin_id: adminId },
+                { id_user: adminId }
+            ],
+            type: "peelo_academy"
+        };
+        
+        console.log(`🔍 Recherche des formations pour l'admin:`, queryFormations);
+        const formations = await Mongo.findCourse(queryFormations);
+        
+        console.log(`✅ ${formations.length} formations trouvées`);
+        console.log("=========================================");
+
+        // Return the formatted formations list
+        // Formating it in a way the chatbot expects it (usually an array of options)
+        const formattedFormations = formations.map(f => ({
+            id: f._id.toString(),
+            title: f.title,
+            description: f.description || `Formation ${f.title}`
+        }));
+
+        return res.status(200).json({ 
+            success: true, 
+            formations: formattedFormations 
+        });
+
+    } catch (error) {
+        console.error("❌ Erreur dans /academy/formations:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+    }
 });
  
 app.listen(7568, () => {
