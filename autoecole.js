@@ -1121,7 +1121,8 @@ app.post('/academy/formations', async function (req, res) {
         console.log(`🔍 Recherche des formations pour l'admin:`, queryFormations);
         const formations = await Mongo.findLiteListCours('courses_peelo_academy', queryFormations, 1000);
         
-        console.log(`✅ ${formations.length} formations trouvées`);
+        console.log(`✅ ${formations.length} formations trouvées. Structure complète:`);
+        console.log(JSON.stringify(formations, null, 2));
         console.log("=========================================");
 
         // Return the formatted formations list
