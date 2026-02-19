@@ -3427,8 +3427,12 @@ app.get('/dashboard/admins/list', authenticateToken, async (req, res) => {
       _id: admin._id,
       email: admin.email,
       role: admin.role,
+      suspended: admin.suspended || false,
       created_at: admin.created_at,
-      name: admin.name || admin.email.split('@')[0]
+      name: admin.name || admin.email.split('@')[0],
+      phone: admin.phone || '',
+      idbot: admin.idbot || '',
+      bubble_link: admin.bubble_link || ''
     }));
 
     return res.status(200).json({
@@ -3444,7 +3448,7 @@ app.get('/dashboard/admins/list', authenticateToken, async (req, res) => {
 // Créer un admin
 app.post('/dashboard/admins/create', authenticateToken, async (req, res) => {
   try {
-    const { email, role, name } = req.body;
+    const { email, role, name, phone, idbot } = req.body;
 
     if (!email) {
         return res.status(400).json({ error: 'Email is required' });
@@ -3475,6 +3479,8 @@ app.post('/dashboard/admins/create', authenticateToken, async (req, res) => {
       password: encryptedPassword,
       role: role || 'admin',
       name: name || '',
+      phone: phone || '',
+      idbot: idbot || '',
       created_at: new Date()
     };
 
@@ -3564,7 +3570,47 @@ app.put('/dashboard/admins/:id/suspend', authenticateToken, async (req, res) => 
   }
 });
 
-// Vérifier le mot de passe (pour actions sensibles)
+// Mettre à jour un admin (phone, idbot, name)
+app.put('/dashboard/admins/:id/update', authenticateToken, async (req, res) => {
+  try {
+    const adminId = req.params.id;
+    const { phone, idbot, name, bubble_link } = req.body;
+
+    await Mongo.connect();
+
+    // Check if target is super_admin (can still be edited by super_admin)
+    const targetAdmin = await Mongo.findAdminPeeloAcademy({ _id: ObjectId(adminId) });
+    if (!targetAdmin || targetAdmin.length === 0) {
+        return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    const updateFields = {};
+    if (phone !== undefined) updateFields.phone = phone;
+    if (idbot !== undefined) updateFields.idbot = idbot;
+    if (bubble_link !== undefined) updateFields.bubble_link = bubble_link;
+    if (name !== undefined && name.trim() !== '') updateFields.name = name.trim();
+
+    const result = await Mongo.update('peelo', 'admin_peelo_academy', Mongo.client,
+        { _id: ObjectId(adminId) },
+        { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+        return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: 'Admin updated successfully',
+        updated: updateFields
+    });
+  } catch (error) {
+    console.error('Error in PUT /dashboard/admins/:id/update:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 app.post('/dashboard/verify-password', authenticateToken, async (req, res) => {
   try {
     const { password } = req.body;
@@ -3819,7 +3865,10 @@ app.post('/dashboard/login-admin', async (req, res) => {
         email: user.email,
         name: user.name,
         role: user.role,
-        isSuperAdmin: user.role === 'super_admin'
+        isSuperAdmin: user.role === 'super_admin',
+        phone: user.phone || null,
+        idbot: user.idbot || null,
+        bubble_link: user.bubble_link || null
       }
     });
 
@@ -3857,5 +3906,119 @@ app.post('/verify/user', async (req, res) => {
 
 
 
+
+
+// ==========================================
+// MAGIC LOGIN LINK (Super Admin Impersonation)
+// ==========================================
+
+const MAGIC_LINK_SECRET = process.env.MAGIC_LINK_SECRET || 'peelo_magic_link_secret_2026';
+const APP_BASE_URL = process.env.APP_BASE_URL || 
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://academy.peelo.chat');
+
+// POST /dashboard/admins/:id/magic-link
+// Génère un lien de connexion éphémère pour un admin (super admin uniquement)
+app.post('/dashboard/admins/:id/magic-link', authenticateToken, async (req, res) => {
+  try {
+    // Vérifier que l'appelant est super admin
+    const callerRole = req.user?.role;
+    if (callerRole !== 'super_admin') {
+      return res.status(403).json({ error: 'Super admin access required' });
+    }
+
+    const adminId = req.params.id;
+    await Mongo.connect();
+
+    const admins = await Mongo.findAdminPeeloAcademy({ _id: ObjectId(adminId) });
+    if (!admins || admins.length === 0) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    const targetAdmin = admins[0];
+
+    // Générer un JWT magique de courte durée (30 min)
+    const jwt = require('jsonwebtoken');
+    const magicPayload = {
+      type: 'magic_login',
+      adminId: targetAdmin._id.toString(),
+      email: targetAdmin.email,
+      role: targetAdmin.role,
+      name: targetAdmin.name || targetAdmin.email.split('@')[0],
+    };
+
+    const magicToken = jwt.sign(magicPayload, MAGIC_LINK_SECRET, { expiresIn: '30m' });
+    const magicUrl = `${APP_BASE_URL}/magic-login?token=${magicToken}`;
+
+    console.log(`🔗 [Magic Link] Generated for admin: ${targetAdmin.email}`);
+
+    return res.status(200).json({
+      success: true,
+      url: magicUrl,
+      expiresIn: '30 minutes'
+    });
+
+  } catch (error) {
+    console.error('Error in POST /dashboard/admins/:id/magic-link:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /dashboard/magic-login?token=xxx
+// Vérifie un magic token et retourne un vrai token de session
+app.get('/dashboard/magic-login', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' });
+    }
+
+    const jwt = require('jsonwebtoken');
+    let decoded;
+    try {
+      decoded = jwt.verify(token, MAGIC_LINK_SECRET);
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired magic link' });
+    }
+
+    if (decoded.type !== 'magic_login') {
+      return res.status(401).json({ error: 'Invalid token type' });
+    }
+
+    await Mongo.connect();
+    const admins = await Mongo.findAdminPeeloAcademy({ _id: ObjectId(decoded.adminId) });
+    if (!admins || admins.length === 0) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    const admin = admins[0];
+
+    // Générer un vrai token de session (24h)
+    const SECRET_KEY = process.env.SECRET_KEY_JWT || 'Grandneuydegeur';
+    const userPayload = {
+      _id: admin._id.toString(),
+      email: admin.email,
+      name: admin.name || admin.email.split('@')[0],
+      role: admin.role || 'admin',
+      isSuperAdmin: admin.role === 'super_admin',
+      phone: admin.phone || null,
+      idbot: admin.idbot || null,
+      bubble_link: admin.bubble_link || null,
+    };
+
+    const sessionToken = jwt.sign({ user: userPayload }, SECRET_KEY, { expiresIn: '24h' });
+
+    console.log(`✅ [Magic Login] Admin logged in via magic link: ${admin.email}`);
+
+    return res.status(200).json({
+      success: true,
+      token: sessionToken,
+      user: userPayload
+    });
+
+  } catch (error) {
+    console.error('Error in GET /dashboard/magic-login:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 }; // Fin du module

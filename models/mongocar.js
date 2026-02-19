@@ -1210,6 +1210,11 @@ return findbyaggreate("peelo", "VARIABLES_VALUE", this.client, aggregate)
     deleteOne(database, table, client, filter) {
         return deleteOne(database, table, client, filter);
     }
+
+    // Generic update method
+    update(database, table, client, condition, newListing) {
+        return update(database, table, client, condition, newListing);
+    }
     // Generic Peelo Academy Methods
 
     // Formations (e.g. Driving School, Coding School, etc.)
