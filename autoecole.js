@@ -1125,12 +1125,12 @@ app.post('/academy/formations', async function (req, res) {
         console.log("=========================================");
 
         // Return the formatted formations list
-        // Formating it in a way the chatbot expects it (usually an array of options)
-        const formattedFormations = formations.map(f => ({
-            id: f._id.toString(),
-            title: f.title,
-            description: f.description || `Formation ${f.title}`
-        }));
+        // Returning all information about each formation as requested
+        const formattedFormations = formations.map(f => {
+            // Keep a clean ID for the bot, but include everything else
+            const formatted = { ...f, id: f._id.toString() };
+            return formatted;
+        });
 
         return res.status(200).json({ 
             success: true, 
