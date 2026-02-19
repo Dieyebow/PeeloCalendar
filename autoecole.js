@@ -1143,7 +1143,7 @@ app.post('/academy/formations', async function (req, res) {
             const treated_Courses = truncateTitles(formations, 24);
             const sections_row = treated_Courses.map((cours) => {
                 return {
-                    id: `Cours_${cours._id.toString()}`,
+                    id: `Formation_${cours._id.toString()}`,
                     title: cours.title,
                     description: `Ce cours a ${cours.number_chapter || 0} chapitre${(cours.number_chapter || 0) > 1 ? 's' : ''}`
                 };
@@ -1184,8 +1184,10 @@ app.post('/academy/formations', async function (req, res) {
                 "text": "Aucune formation disponible pour le moment."
             };
         }
-
-        return res.status(200).json(responseData);
+        console.log("✅ Réponse envoyée:");
+        console.log(JSON.stringify(responseData, null, 2));
+        console.log("=========================================");
+        return res.status(200).json(responseData); 
 
     } catch (error) {
         console.error("❌ Erreur dans /academy/formations:", error);
