@@ -1115,12 +1115,11 @@ app.post('/academy/formations', async function (req, res) {
             $or: [
                 { owner_admin_id: adminId },
                 { id_user: adminId }
-            ],
-            type: "peelo_academy"
+            ]
         };
         
         console.log(`🔍 Recherche des formations pour l'admin:`, queryFormations);
-        const formations = await Mongo.findCourse(queryFormations);
+        const formations = await Mongo.findLiteListCours('courses_peelo_academy', queryFormations, 1000);
         
         console.log(`✅ ${formations.length} formations trouvées`);
         console.log("=========================================");
