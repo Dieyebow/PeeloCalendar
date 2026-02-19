@@ -1125,18 +1125,67 @@ app.post('/academy/formations', async function (req, res) {
         console.log(JSON.stringify(formations, null, 2));
         console.log("=========================================");
 
-        // Return the formatted formations list
-        // Returning all information about each formation as requested
-        const formattedFormations = formations.map(f => {
-            // Keep a clean ID for the bot, but include everything else
-            const formatted = { ...f, id: f._id.toString() };
-            return formatted;
-        });
+        // Return the formatted formations list as an interactive WhatsApp-style list block
+        const truncateTitles = (list, maxLength) => {
+            return list.map(item => {
+                let formatted = { ...item };
+                if (formatted.title && formatted.title.length > maxLength) {
+                    formatted.title = formatted.title.substring(0, maxLength) + '...';
+                }
+                return formatted;
+            });
+        };
 
-        return res.status(200).json({ 
-            success: true, 
-            formations: formattedFormations 
-        });
+        const id_element = "list_" + Math.random().toString(36).substr(2, 9);
+        let responseData = {};
+
+        if (formations.length > 0) {
+            const treated_Courses = truncateTitles(formations, 24);
+            const sections_row = treated_Courses.map((cours) => {
+                return {
+                    id: `Cours_${cours._id.toString()}`,
+                    title: cours.title,
+                    description: `Ce cours a ${cours.number_chapter || 0} chapitre${(cours.number_chapter || 0) > 1 ? 's' : ''}`
+                };
+            });  
+            
+            responseData = {
+                "type": "list",
+                "id_element": id_element,
+                "id_previous": null,
+                "interactive": {
+                    "type": "list",
+                    "header": {
+                        "type": "text",
+                        "text": "formations disponibles"
+                    },
+                    "body": {
+                        "text": "La liste des formations disponibles"
+                    },
+                    "footer": {
+                        "text": "Choisissez une formation pour commencer"
+                    },
+                    "action": {
+                        "button": "Démarrer",
+                        "sections": [
+                            {
+                                "title": "Les formations",
+                                "rows": sections_row
+                            }
+                        ]
+                    }
+                }
+            };
+        } else {
+            responseData = {
+                "type": "text",
+                "id_element": id_element,
+                "id_previous": null,
+                "text": "Aucune formation disponible pour le moment."
+            };
+        }
+
+        return res.status(200).json(responseData);
 
     } catch (error) {
         console.error("❌ Erreur dans /academy/formations:", error);
