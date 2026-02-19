@@ -1076,6 +1076,18 @@ require('./routes/autoecole/chatbotapi')(_, app, axios, Mongo, cron, require("mo
 require('./peelocarDashboard')(_, app, axios, Mongo, require("mongodb").ObjectID, authenticateToken);
 
 
+// ==========================================
+// ACADEMY ENDPOINTS
+// ==========================================
+
+app.post('/academy/formations', async function (req, res) {
+    console.log("=========================================");
+    console.log("📥 [POST /academy/formations] Payload reçu:");
+    console.log(JSON.stringify(req.body, null, 2));
+    console.log("=========================================");
+
+    return res.status(200).json({ success: true, message: "Payload reçu et loggé" });
+});
  
 app.listen(7568, () => {
   console.log('✅ Server started on port 7568');
