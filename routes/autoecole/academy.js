@@ -690,8 +690,8 @@ module.exports = (_, app, axios, Mongo, cron, ObjectID, authenticateToken, gener
         console.log('✅ ROUTE CALLED: /academy/default/answer');
         console.log(JSON.stringify(req.body, null, 2));
         
-        try {
-            await Mongo.connect();
+        try { 
+            await Mongo.connect(); 
 
             // Prevent crash if undefined
             if (!req.body.datas) {

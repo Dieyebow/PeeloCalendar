@@ -197,25 +197,67 @@ class Mongobot {
     }
 
 
-    connect() {
-        return new Promise((resolve, reject) => {
-            if (this.client !== null) {
-                console.log('Using existing connection');
-                resolve(this.client);
-                return;
+    async connect() {
+        try {
+            console.log('Vérification de la connexion existante...');
+
+            // Vérifier si une connexion existe déjà
+            if (this.client) {
+                try {
+                    console.log('Test de la connexion existante (Ping)...');
+                    
+                    // Timeout de 5 secondes pour le ping
+                    const pingPromise = this.client.db().command({ ping: 1 });
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Ping timeout')), 5000)
+                    );
+
+                    await Promise.race([pingPromise, timeoutPromise]);
+                    
+                    console.log('Connexion MongoDB déjà établie et active.');
+
+                    const stats = await this.client.db().command({ dbStats: 1 });
+                    console.log('Current database:', stats.db);
+                    if(stats.db == 'peelo') {
+                        return this.client;
+                    }
+                } catch (error) {
+                    console.log('⚠️ La connexion existante n\'est plus valide (Erreur ou Timeout):', error.message);
+                    try { await this.client.close(); } catch(e) {} // Essayer de fermer proprement
+                    this.client = null;
+                }
             }
 
-            console.log('config.uri', config.uri);
-            MongoClient.connect(config.uri, (err, result) => {
-                if (err) {
-                    reject(new Error(err));
-                } else {
-                    console.log('New connection created');
-                    this.client = result;
-                    resolve(result);
+            // Serveurs de base de données (tableau ou URI unique fallback)
+            const servers = config.DB_SERVERS || [config.uri];
+            let lastError = null;
+
+            for (let i = 0; i < servers.length; i++) {
+                const currentUri = servers[i];
+                console.log(`Tentative de connexion à la base de données ${i + 1}/${servers.length}...`);
+                try {
+                    this.client = await MongoClient.connect(currentUri, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                        serverSelectionTimeoutMS: 5000, // Timeout de 5s pour ne pas bloquer si le serveur est down
+                        connectTimeoutMS: 10000 // 10 secondes max pour établir la TCP connection
+                    });
+                    console.log(`✅ Connexion MongoDB réussie sur le serveur ${i + 1}.`);
+                    return this.client;
+                } catch (err) {
+                    console.error(`❌ Échec de connexion sur le serveur ${i + 1}:`, err.message);
+                    lastError = err;
                 }
-            });
-        });
+            }
+
+            // Si on arrive ici, tous les serveurs ont échoué
+            console.error('💥 Impossible de se connecter à aucun des serveurs MongoDB configurés.');
+            throw lastError || new Error("All database connections failed.");
+
+        } catch (error) {
+            console.error('Erreur dans connect() :', error);
+            throw error;
+        }
     }
 
     disconnect() {
