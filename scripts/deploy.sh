@@ -18,15 +18,15 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Server configuration
-SSH_KEY="$HOME/Documents/keypair/ojaydeliveryssh.pem"
-SERVER="ec2-user@ec2-18-119-60-110.us-east-2.compute.amazonaws.com"
-REMOTE_PATH="/home/ec2-user/PeeloCalendar"
+SSH_KEY="/Users/peeloincceo/.ssh/id_ed25519_hetzner"
+SERVER="root@168.119.125.171"
+REMOTE_PATH="/root/apps/academy-backend"
 
 echo -e "${YELLOW}🚀 Starting Peelocalendar deployment...${NC}"
 
 # Step 1: Check if there are changes to commit
 echo -e "${YELLOW}📝 Checking for changes...${NC}"
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 if [[ -z $(git status --porcelain) ]]; then
     echo -e "${GREEN}✓ No local changes to commit. Proceeding with push...${NC}"
@@ -47,9 +47,15 @@ git push origin main
 
 # Step 3: SSH into server and deploy
 echo -e "${YELLOW}🖥️ Connecting to server...${NC}"
-ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SERVER" << 'ENDSSH'
-    echo "📂 Navigating to PeeloCalendar..."
-    cd /home/ec2-user/PeeloCalendar
+ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SERVER" << ENDSSH
+    echo "📂 Navigating to $REMOTE_PATH..."
+    mkdir -p $REMOTE_PATH
+    cd $REMOTE_PATH
+    
+    if [ ! -d .git ]; then
+        echo "🌐 Cloning repository..."
+        git clone https://github.com/Dieyebow/PeeloCalendar.git .
+    fi
     
     echo "🧹 Cleaning untracked files (excluding uploads)..."
     git clean -fd --exclude=public/assets/uploads/
@@ -62,7 +68,7 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SERVER" << 'ENDSSH'
     npm install
 
     echo "🔄 Restarting autoecole.js via PM2..."
-    pm2 restart autoecole.js
+    pm2 restart autoecole.js || pm2 start autoecole.js
     
     echo "✅ Server deployment complete!"
 ENDSSH
