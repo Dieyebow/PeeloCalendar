@@ -14,7 +14,8 @@ const DATABASE_NAME = 'peelo';
 if (isProduction) {
     // On définit un tableau de serveurs par ordre de priorité
     exports.DB_SERVERS = [
-        process.env.MONGODB_URI || `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@peelo-ee003264.mongo.ondigitalocean.com/${DATABASE_NAME}?replicaSet=${DATABASE_NAME}&tls=true&authSource=admin`,
+        process.env.MONGODB_URI || `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@168.119.125.171:27017/${DATABASE_NAME}?authSource=admin`,
+        `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@peelo-ee003264.mongo.ondigitalocean.com/${DATABASE_NAME}?replicaSet=${DATABASE_NAME}&tls=true&authSource=admin`,
         `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD_BACKUP}@ec2-18-119-60-110.us-east-2.compute.amazonaws.com:27017/${DATABASE_NAME}`
     ];
 } else {
